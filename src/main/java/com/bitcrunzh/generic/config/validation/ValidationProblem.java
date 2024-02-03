@@ -1,5 +1,6 @@
 package com.bitcrunzh.generic.config.validation;
 
-public interface ValidationError {
+public interface ValidationProblem {
+    ProblemSeverity getSeverity();
     String getDescription();
 }
