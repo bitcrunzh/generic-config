@@ -1,4 +1,4 @@
 package com.bitcrunzh.generic.config.description.java.property;
 
-public class IntProperty {
+public class DoublePropertyDescription {
 }

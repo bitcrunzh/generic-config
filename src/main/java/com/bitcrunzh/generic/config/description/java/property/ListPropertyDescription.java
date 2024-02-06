@@ -1,4 +1,4 @@
 package com.bitcrunzh.generic.config.description.java.property;
 
-public class ListProperty {
+public class ListPropertyDescription {
 }

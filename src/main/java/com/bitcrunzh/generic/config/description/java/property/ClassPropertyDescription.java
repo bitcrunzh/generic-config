@@ -5,25 +5,9 @@ import com.bitcrunzh.generic.config.validation.PropertyValidationError;
 
 import java.util.Optional;
 
-public class ClassPropertyDescription<T> implements PropertyDescription<T> {
-    @Override
-    public String getName() {
-        return null;
-    }
-
-    @Override
-    public String getDescription() {
-        return null;
-    }
-
-    @Override
-    public Optional<T> getDefaultValue() {
-        return null;
-    }
-
-    @Override
-    public Class<T> getType() {
-        return null;
+public class ClassPropertyDescription<T> extends PropertyDescriptionBase<T> {
+    public ClassPropertyDescription(String name, String description, T defaultValue, Class<T> type) {
+        super(name, description, defaultValue, type);
     }
 
     @Override
