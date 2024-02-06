@@ -28,3 +28,10 @@ replay_pid*
 
 # Ignore Gradle build output directory
 build
+/.idea/.gitignore
+/.idea/compiler.xml
+/.idea/gradle.xml
+/.idea/jarRepositories.xml
+/.idea/misc.xml
+/.idea/uiDesigner.xml
+/.idea/vcs.xml
