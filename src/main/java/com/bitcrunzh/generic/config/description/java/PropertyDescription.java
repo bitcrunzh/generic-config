@@ -3,7 +3,7 @@ package com.bitcrunzh.generic.config.description.java;
 import com.bitcrunzh.generic.config.validation.PropertyProblem;
 import com.bitcrunzh.generic.config.validation.PropertyOptionalProblem;
 import com.bitcrunzh.generic.config.validation.PropertyValidator;
-import com.bitcrunzh.generic.config.value.PropertyValue;
+import com.bitcrunzh.generic.config.value.java.PropertyValue;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;

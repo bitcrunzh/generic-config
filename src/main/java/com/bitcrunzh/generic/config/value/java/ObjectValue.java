@@ -1,4 +1,4 @@
-package com.bitcrunzh.generic.config.value;
+package com.bitcrunzh.generic.config.value.java;
 
 import com.bitcrunzh.generic.config.description.java.Version;
 

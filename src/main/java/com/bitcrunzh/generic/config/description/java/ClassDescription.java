@@ -1,8 +1,8 @@
 package com.bitcrunzh.generic.config.description.java;
 
 import com.bitcrunzh.generic.config.validation.*;
-import com.bitcrunzh.generic.config.value.ObjectValue;
-import com.bitcrunzh.generic.config.value.PropertyValue;
+import com.bitcrunzh.generic.config.value.java.ObjectValue;
+import com.bitcrunzh.generic.config.value.java.PropertyValue;
 
 import java.util.*;
 import java.util.function.Function;
