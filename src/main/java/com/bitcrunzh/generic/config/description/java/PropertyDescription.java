@@ -2,6 +2,7 @@ package com.bitcrunzh.generic.config.description.java;
 
 import com.bitcrunzh.generic.config.validation.PropertyProblem;
 import com.bitcrunzh.generic.config.validation.PropertyValidator;
+import com.bitcrunzh.generic.config.validation.ValidationResult;
 import com.bitcrunzh.generic.config.value.java.NormalizedProperty;
 import com.bitcrunzh.generic.config.value.java.Value;
 
@@ -27,11 +28,11 @@ public interface PropertyDescription<C, T> {
 
     Optional<T> createProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache);
 
-    Optional<PropertyProblem> validateValueFromParent(C parentObject);
+    ValidationResult<T> validateValueFromParent(C parentObject);
 
-    Optional<PropertyProblem> validateValue(T property);
+    ValidationResult<T> validateValue(T property);
 
-    Optional<PropertyProblem> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache);
+    ValidationResult<T> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache);
 
     Function<C, T> getGetterFunction();
 

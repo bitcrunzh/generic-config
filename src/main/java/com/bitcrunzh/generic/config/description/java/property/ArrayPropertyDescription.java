@@ -6,6 +6,7 @@ import com.bitcrunzh.generic.config.validation.PropertyProblem;
 import com.bitcrunzh.generic.config.validation.PropertyValidator;
 import com.bitcrunzh.generic.config.value.java.*;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,12 +14,15 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class ArrayPropertyDescription<C, V> extends PropertyDescriptionBase<C, V[]> {
-    public ArrayPropertyDescription(String propertyName, String description,V[] defaultValue, Class<C> parentType, Class<V[]> type, PropertyValidator<V[]> validator, boolean isOptional, Version introducedInVersion, Function<C, V[]> getterFunction) {
+    private final Class<V> arrayElementType;
+    public ArrayPropertyDescription(String propertyName, String description, V[] defaultValue, Class<C> parentType, Class<V[]> type, PropertyValidator<V[]> validator, boolean isOptional, Version introducedInVersion, Function<C, V[]> getterFunction, Class<V> arrayElementType) {
         super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction);
+        this.arrayElementType = arrayElementType;
     }
 
-    public ArrayPropertyDescription(String propertyName, String description, V[] defaultValue, Class<C> parentType, Class<V[]> type, PropertyValidator<V[]> validator, boolean isOptional, Version introducedInVersion, Function<C, V[]> getterFunction, BiConsumer<C, V[]> setterFunction) {
+    public ArrayPropertyDescription(String propertyName, String description, V[] defaultValue, Class<C> parentType, Class<V[]> type, PropertyValidator<V[]> validator, boolean isOptional, Version introducedInVersion, Function<C, V[]> getterFunction, BiConsumer<C, V[]> setterFunction, Class<V> arrayElementType) {
         super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction, setterFunction);
+        this.arrayElementType = arrayElementType;
     }
 
     @Override
@@ -51,12 +55,12 @@ public class ArrayPropertyDescription<C, V> extends PropertyDescriptionBase<C, V
             return Optional.empty();
         }
         ArrayValue<V> normalizedList = getValue(normalizedProperty.getValue().get(), ArrayValue.class);
-        List<V> valueList = new ArrayList<>();
-        for(Value<V> normalizedValue : normalizedList.getValue()) {
-            valueList.add(NormalizedValueFactory.convertToValue(normalizedValue, classDescriptionCache));
+        @SuppressWarnings("unchecked") V[] valueArray = (V[]) Array.newInstance(arrayElementType, normalizedList.getValue().length);
+        for(int i = 0; i < normalizedList.getValue().length; i++) {
+            valueArray[i] = NormalizedValueFactory.convertToValue(normalizedList.getValue()[i], classDescriptionCache);
         }
         //TODO create a generic array...
-        return Optional.of(valueList.toArray());
+        return Optional.of(valueArray);
     }
 
     @Override
