@@ -13,6 +13,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class SetPropertyDescription<C, V> extends PropertyDescriptionBase<C, Set<V>> {
+    //TODO implement
     public SetPropertyDescription(String propertyName, String description, Set<V> defaultValue, Class<C> parentType, Class<Set<V>> type, PropertyValidator<Set<V>> validator, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction) {
         super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction);
     }
