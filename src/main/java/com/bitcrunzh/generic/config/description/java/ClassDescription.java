@@ -1,8 +1,8 @@
 package com.bitcrunzh.generic.config.description.java;
 
 import com.bitcrunzh.generic.config.validation.*;
-import com.bitcrunzh.generic.config.value.java.ObjectValue;
-import com.bitcrunzh.generic.config.value.java.PropertyValue;
+import com.bitcrunzh.generic.config.value.java.NormalizedObject;
+import com.bitcrunzh.generic.config.value.java.NormalizedProperty;
 
 import java.util.*;
 import java.util.function.Function;
@@ -13,19 +13,19 @@ public class ClassDescription<T> {
     private final Class<T> type;
     private final Version modelVersion;
     private final List<PropertyDescription<T, ?>> propertyDescriptions;
-    private final Function<ObjectValue<T>, T> constructorFunction;
+    private final Function<NormalizedObject<T>, T> constructorFunction;
     private final ObjectValidator<T> objectValidator;
 
-    public ClassDescription(Class<T> type, Version modelVersion, List<PropertyDescription<T, ?>> propertyDescriptions, Function<ObjectValue<T>, T> constructorFunction, ObjectValidator<T> objectValidator) {
+    public ClassDescription(Class<T> type, Version modelVersion, List<PropertyDescription<T, ?>> propertyDescriptions, Function<NormalizedObject<T>, T> constructorFunction, ObjectValidator<T> objectValidator) {
         this.type = type;
         this.modelVersion = modelVersion;
         this.propertyDescriptions = propertyDescriptions;
         this.constructorFunction = constructorFunction;
         this.objectValidator = objectValidator;
         for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
-            namePropertyMap.put(propertyDescription.getName(), propertyDescription);
+            namePropertyMap.put(propertyDescription.getPropertyName(), propertyDescription);
             if (!propertyDescription.isOptional()) {
-                mandatoryProperties.add(propertyDescription.getName());
+                mandatoryProperties.add(propertyDescription.getPropertyName());
             }
         }
     }
@@ -42,54 +42,64 @@ public class ClassDescription<T> {
         return Collections.unmodifiableList(propertyDescriptions);
     }
 
-    public T create(ObjectValue<T> object) {
-        ValidationResult<T> validationResult = validate(object);
+    public T denormalize(NormalizedObject<T> object, ClassDescriptionCache classDescriptionCache) {
+        ValidationResult<T> validationResult = validate(object, classDescriptionCache);
         if (validationResult.isValid()) {
             throw new IllegalArgumentException(String.format("ObjectValue could not be used to create an instance of '%s' as it was not valid. Reason: '%s'", type.getSimpleName(), validationResult));
         }
-        if(validationResult.getValidatedObject() != null) {
+        if (validationResult.getValidatedObject() != null) {
             return validationResult.getValidatedObject();
         }
         return constructorFunction.apply(object);
     }
 
+    public NormalizedObject<T> normalize(T object, ClassDescriptionCache classDescriptionCache) {
+        if (object == null) {
+            throw new IllegalArgumentException("Cannot normalize a null object.");
+        }
+        ValidationResult<T> validationResult = validate(object);
+        if (!validationResult.isValid()) {
+            throw new IllegalArgumentException(String.format("Object of type '%s' is not valid. Reason: '%s'", object.getClass(), validationResult));
+        }
+        List<NormalizedProperty<?>> normalizedPropertyValues = new ArrayList<>();
+        for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
+            normalizedPropertyValues.add(propertyDescription.createPropertyValueFromParent(object, classDescriptionCache));
+        }
+        return new NormalizedObject<>(type, normalizedPropertyValues, modelVersion);
+    }
+
     public ValidationResult<T> validate(T object) {
         List<ValidationProblem> validationProblems = new ArrayList<>();
-        for(PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
-            propertyDescription.validateFromParent(object).ifPresent(validationProblems::add);
+        for (PropertyDescription<T, ?> propertyDescriptionBase : propertyDescriptions) {
+            propertyDescriptionBase.validateValueFromParent(object).ifPresent(validationProblems::add);
         }
         objectValidator.validate(object).ifPresent(validationProblems::add);
         return new ValidationResult<>(object, validationProblems);
     }
 
-    public ValidationResult<T> validate(ObjectValue<T> objectValue) {
+    public ValidationResult<T> validate(NormalizedObject<T> normalizedObject, ClassDescriptionCache classDescriptionCache) {
         List<ValidationProblem> validationProblems = new ArrayList<>();
+        if (!normalizedObject.getType().equals(type)) {
+            validationProblems.add(new ClassTypeProblem(type, normalizedObject.getType()));
+        }
         Set<String> mandatoryPropertiesToFind = new HashSet<>(mandatoryProperties);
-        for (PropertyValue<?> propertyValue : objectValue.getProperties()) {
-            assertPropertyValueValid(propertyValue).ifPresent(validationProblems::add);
-            mandatoryPropertiesToFind.remove(propertyValue.getPropertyName());
+        for (NormalizedProperty<?> normalizedProperty : normalizedObject.getProperties()) {
+            assertPropertyValueValid(normalizedProperty, classDescriptionCache).ifPresent(validationProblems::add);
+            mandatoryPropertiesToFind.remove(normalizedProperty.getPropertyName());
         }
         if (!mandatoryPropertiesToFind.isEmpty()) {
             validationProblems.add(new ObjectValidationProblem(ProblemSeverity.ERROR, String.format("ObjectValue for '%s' is missing the following mandatory PropertyValues '%s'", type.getSimpleName(), mandatoryPropertiesToFind)));
         }
-        T object = constructorFunction.apply(objectValue);
+        T object = constructorFunction.apply(normalizedObject);
         objectValidator.validate(object).ifPresent(validationProblems::add);
         return new ValidationResult<>(object, validationProblems);
     }
 
-    private <V> Optional<PropertyProblem> assertPropertyValueValid(PropertyValue<V> propertyValue) {
-        @SuppressWarnings("unchecked") PropertyDescription<T, V> propertyDescription = (PropertyDescription<T, V>) namePropertyMap.get(propertyValue.getPropertyName());
+    private <V> Optional<PropertyProblem> assertPropertyValueValid(NormalizedProperty<V> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+        @SuppressWarnings("unchecked") PropertyDescription<T, V> propertyDescription = (PropertyDescription<T, V>) namePropertyMap.get(normalizedProperty.getPropertyName());
         if (propertyDescription == null) {
-            return Optional.of(new UnknownPropertyWarning(propertyValue.getPropertyName(), propertyValue.getValue()));
+            return Optional.of(new UnknownPropertyWarning(normalizedProperty.getPropertyName(), normalizedProperty.getValue()));
         }
-        if (propertyValue.getValue().isEmpty() && !propertyDescription.isOptional()) {
-            return Optional.of(new PropertyOptionalProblem(propertyDescription.getName(), propertyDescription.getType()));
-        }
-        if (propertyValue.getValue().isPresent()) {
-            if (!propertyDescription.getType().isInstance(propertyValue.getValue())) {
-                return Optional.of(new PropertyTypeProblem(propertyDescription.getName(), propertyDescription.getType(), propertyValue.getValue().getClass()));
-            }
-        }
-        return propertyDescription.getValidator().validate(propertyValue.getValue().orElse(null));
+        return propertyDescription.validateNormalizedProperty(normalizedProperty, classDescriptionCache);
     }
 }

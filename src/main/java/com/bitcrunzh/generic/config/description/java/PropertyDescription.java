@@ -1,115 +1,41 @@
 package com.bitcrunzh.generic.config.description.java;
 
 import com.bitcrunzh.generic.config.validation.PropertyProblem;
-import com.bitcrunzh.generic.config.validation.PropertyOptionalProblem;
 import com.bitcrunzh.generic.config.validation.PropertyValidator;
-import com.bitcrunzh.generic.config.value.java.PropertyValue;
+import com.bitcrunzh.generic.config.value.java.NormalizedProperty;
+import com.bitcrunzh.generic.config.value.java.Value;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class PropertyDescription<C, T> {
-    private final String name;
-    private final String description;
-    private final T defaultValue;
-    private final Class<T> type;
-    private final PropertyValidator<T> validator;
-    private final boolean isOptional;
-    private final Version introducedInVersion;
-    private final Function<C, T> getterFunction;
-    private final BiConsumer<C, T> setterFunction;
+public interface PropertyDescription<C, T> {
+    String getPropertyName();
 
-    protected PropertyDescription(String name, String description, T defaultValue, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction) {
-        this(name, description, defaultValue, type, validator, isOptional, introducedInVersion, getterFunction, null);
-    }
+    String getDescription();
 
-    protected PropertyDescription(String name, String description, T defaultValue, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction) {
-        this.name = name;
-        this.description = description;
-        this.defaultValue = defaultValue;
-        this.type = type;
-        this.validator = validator;
-        this.isOptional = isOptional;
-        this.introducedInVersion = introducedInVersion;
-        this.getterFunction = getterFunction;
-        this.setterFunction = setterFunction;
-    }
+    Optional<T> getDefaultValue();
 
-    public String getName() {
-        return name;
-    }
+    Class<T> getType();
 
-    public String getDescription() {
-        return description;
-    }
+    boolean isOptional();
 
-    public Optional<T> getDefaultValue() {
-        return Optional.ofNullable(defaultValue);
-    }
+    Version getIntroducedInVersion();
 
-    public Class<T> getType() {
-        return type;
-    }
+    NormalizedProperty<T> createPropertyValue(T property, ClassDescriptionCache classDescriptionCache);
+    NormalizedProperty<T> createPropertyValueFromParent(C parent, ClassDescriptionCache classDescriptionCache);
 
-    public PropertyValidator<T> getValidator() {
-        return validator;
-    }
+    Optional<T> createProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache);
 
-    /**
-     * Defines whether it is optional to specify a value to this property.
-     * Please notice that all properties added after initial version of the referencing ClassDescriptor is implicitly optional, as older version of the ClassDescriptor may not know about it.
-     *
-     * @return whether it is optional to specify a value to this property.
-     */
-    public boolean isOptional() {
-        return isOptional;
-    }
+    Optional<PropertyProblem> validateValueFromParent(C parentObject);
 
-    public Version getIntroducedInVersion() {
-        return introducedInVersion;
-    }
+    Optional<PropertyProblem> validateValue(T property);
 
-    public PropertyValue<T> createPropertyValue(T property) {
-        Optional<PropertyProblem> validationError = validator.validate(property);
-        if (validationError.isPresent()) {
-            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s:%s' is not valid. Reason: '%s'", validationError.get().getPropertyName(), type.getSimpleName(), validationError.get().getDescription()));
-        }
-        return new PropertyValue<>(name, property);
-    }
+    Optional<PropertyProblem> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache);
 
-    public Optional<T> createProperty(PropertyValue<T> propertyValue) {
-        T value = propertyValue.getValue().orElse(null);
-        Optional<PropertyProblem> validationError = validator.validate(value);
-        if (validationError.isPresent()) {
-            throw new IllegalArgumentException(String.format("Cannot get property value as property '%s:%s' is not valid. Reason: '%s'", validationError.get().getPropertyName(), type.getSimpleName(), validationError.get().getDescription()));
-        }
-        return propertyValue.getValue();
-    }
+    Function<C, T> getGetterFunction();
 
-    public Optional<PropertyProblem> validateFromParent(C parentObject) {
-        T value = getterFunction.apply(parentObject);
-        return validate(value);
-    }
+    Optional<BiConsumer<C, T>> getSetterFunction();
 
-    public Optional<PropertyProblem> validate(T property) {
-        return validate(new PropertyValue<>(name, property));
-    }
-
-    public Optional<PropertyProblem> validate(PropertyValue<T> propertyValue) {
-        if (propertyValue.getValue().isPresent()) {
-            return validator.validate(propertyValue.getValue().orElse(null));
-        } else if (!isOptional) {
-            return Optional.of(new PropertyOptionalProblem(name, type));
-        }
-        return Optional.empty();
-    }
-
-    public Function<C, T> getGetterFunction() {
-        return getterFunction;
-    }
-
-    public Optional<BiConsumer<C, T>> getSetterFunction() {
-        return Optional.ofNullable(setterFunction);
-    }
+    Class<C> getParentType();
 }
