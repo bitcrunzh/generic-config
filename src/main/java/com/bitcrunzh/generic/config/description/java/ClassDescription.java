@@ -69,36 +69,36 @@ public class ClassDescription<T> {
     }
 
     public ValidationResult<T> validate(T object) {
-        List<ValidationProblem> validationProblems = new ArrayList<>();
-        for (PropertyDescription<T, ?> propertyDescriptionBase : propertyDescriptions) {
-            propertyDescriptionBase.validateValueFromParent(object).ifPresent(validationProblems::add);
+        ValidationResult<T> validationResult = objectValidator.validate(object);
+        for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
+            validationResult.addValidationResult(propertyDescription.validateValueFromParent(object));
         }
-        objectValidator.validate(object).ifPresent(validationProblems::add);
-        return new ValidationResult<>(object, validationProblems);
+        return validationResult;
     }
 
     public ValidationResult<T> validate(NormalizedObject<T> normalizedObject, ClassDescriptionCache classDescriptionCache) {
-        List<ValidationProblem> validationProblems = new ArrayList<>();
+        ValidationResult<?> validationProblems = new ValidationResult<>();
         if (!normalizedObject.getType().equals(type)) {
-            validationProblems.add(new ClassTypeProblem(type, normalizedObject.getType()));
+            validationProblems.addValidationProblem(new ClassTypeProblem(type, normalizedObject.getType()));
         }
         Set<String> mandatoryPropertiesToFind = new HashSet<>(mandatoryProperties);
         for (NormalizedProperty<?> normalizedProperty : normalizedObject.getProperties()) {
-            assertPropertyValueValid(normalizedProperty, classDescriptionCache).ifPresent(validationProblems::add);
+            validationProblems.addValidationResult(assertPropertyValueValid(normalizedProperty, classDescriptionCache));
             mandatoryPropertiesToFind.remove(normalizedProperty.getPropertyName());
         }
         if (!mandatoryPropertiesToFind.isEmpty()) {
-            validationProblems.add(new ObjectValidationProblem(ProblemSeverity.ERROR, String.format("ObjectValue for '%s' is missing the following mandatory PropertyValues '%s'", type.getSimpleName(), mandatoryPropertiesToFind)));
+            validationProblems.addValidationProblem(new ObjectValidationProblem(ProblemSeverity.ERROR, String.format("ObjectValue for '%s' is missing the following mandatory PropertyValues '%s'", type.getSimpleName(), mandatoryPropertiesToFind)));
         }
         T object = constructorFunction.apply(normalizedObject);
-        objectValidator.validate(object).ifPresent(validationProblems::add);
-        return new ValidationResult<>(object, validationProblems);
+        ValidationResult<T> validationResult = objectValidator.validate(object);
+        validationResult.addValidationResult(validationProblems);
+        return validationResult;
     }
 
-    private <V> Optional<PropertyProblem> assertPropertyValueValid(NormalizedProperty<V> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+    private <V> ValidationResult<V> assertPropertyValueValid(NormalizedProperty<V> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
         @SuppressWarnings("unchecked") PropertyDescription<T, V> propertyDescription = (PropertyDescription<T, V>) namePropertyMap.get(normalizedProperty.getPropertyName());
         if (propertyDescription == null) {
-            return Optional.of(new UnknownPropertyWarning(normalizedProperty.getPropertyName(), normalizedProperty.getValue()));
+            return new ValidationResult<>(new UnknownPropertyWarning(normalizedProperty.getPropertyName(), normalizedProperty.getValue()));
         }
         return propertyDescription.validateNormalizedProperty(normalizedProperty, classDescriptionCache);
     }

@@ -40,14 +40,9 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
                 propertyValue -> {
                     @SuppressWarnings("unchecked") ClassDescription<T> classDescription = (ClassDescription<T>) classDescriptionCache.getClassDescription(propertyValue.getClass());
                     if(classDescription == null) {
-                        return Optional.of(new UnknownClassDescriptionProblem(parentType, type, propertyName));
+                        return ValidationResult.of(new UnknownClassDescriptionProblem(parentType, type, propertyName));
                     }
-                    ValidationResult<T> validationResult = classDescription.validate(propertyValue);
-                    if(validationResult.isValid()) {
-                        return Optional.empty();
-                    } else {
-                        return Optional.of(new ValidationResultPropertyProblem<>(propertyName, validationResult));
-                    }
+                    return classDescription.validate(propertyValue);
                 },
                 isOptional,
                 introducedInVersion,
@@ -58,9 +53,9 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
 
     @Override
     public NormalizedProperty<T> createPropertyValue(T property, ClassDescriptionCache classDescriptionCache) {
-        Optional<PropertyProblem> problem = validateValue(property);
-        if (problem.isPresent()) {
-            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), problem.get().getDescription()));
+        ValidationResult<T> validationResult = validateValue(property);
+        if (validationResult.hasErrors()) {
+            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
         }
         if (property == null) {
             return new NormalizedProperty<>(getPropertyName(), null);
@@ -74,11 +69,11 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
 
     @Override
     public Optional<T> createProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
-        Optional<PropertyProblem> problem = validateNormalizedProperty(normalizedProperty, classDescriptionCache);
-        if (problem.isPresent()) {
-            throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), problem.get().getDescription()));
+        ValidationResult<T> validationResult = validateNormalizedProperty(normalizedProperty, classDescriptionCache);
+        if (validationResult.hasErrors()) {
+            throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
         }
-        if (!normalizedProperty.getValue().isPresent()) {
+        if (normalizedProperty.getValue().isEmpty()) {
             return Optional.empty();
         }
         ObjectValue<T> normalizedValue = getValue(normalizedProperty.getValue().get(), ObjectValue.class);
@@ -88,18 +83,17 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
     }
 
     @Override
-    public Optional<PropertyProblem> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
-        if (!normalizedProperty.getValue().isPresent()) {
+    public ValidationResult<T> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+        if (normalizedProperty.getValue().isEmpty()) {
             if (isOptional()) {
-                return Optional.empty();
+                return ValidationResult.empty();
             } else {
-                return Optional.of(new PropertyOptionalProblem(getPropertyName(), getType()));
+                return ValidationResult.of(new PropertyOptionalProblem(getPropertyName(), getType()));
             }
         }
         ObjectValue<T> objectValue = getValue(normalizedProperty.getValue().get(), ObjectValue.class);
         ClassDescription<T> classDescription = classDescriptionCache.getClassDescription(objectValue.getValue().getType());
-        ValidationResult<T> validationResult = classDescription.validate(objectValue.getValue(), classDescriptionCache);
-        return Optional.of(new ValidationResultPropertyProblem<>(getPropertyName(), validationResult));
+        return classDescription.validate(objectValue.getValue(), classDescriptionCache);
     }
 
     private String printSimpleClassNames(Set<Class<? extends T>> subTypes) {

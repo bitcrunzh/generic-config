@@ -11,11 +11,14 @@ import com.bitcrunzh.generic.config.value.java.Value;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 //TODO support map
-public class MapPropertyDescription<C, V> extends PropertyDescriptionBase<C, List<V>> {
+public class MapPropertyDescription<C, K, V> extends PropertyDescriptionBase<C, Map<K, V>> {
+    private final CollectionValueDescription<K> mapKeyDescription;
+    private final CollectionValueDescription<V> mapValueDescription;
     public MapPropertyDescription(String propertyName, String description, List<V> defaultValue, Class<C> parentType, Class<List<V>> type, PropertyValidator<List<V>> validator, boolean isOptional, Version introducedInVersion, Function<C, List<V>> getterFunction) {
         super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction);
     }

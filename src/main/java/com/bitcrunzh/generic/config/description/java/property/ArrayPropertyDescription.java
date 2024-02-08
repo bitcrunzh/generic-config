@@ -4,6 +4,7 @@ import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.Version;
 import com.bitcrunzh.generic.config.validation.PropertyProblem;
 import com.bitcrunzh.generic.config.validation.PropertyValidator;
+import com.bitcrunzh.generic.config.validation.ValidationResult;
 import com.bitcrunzh.generic.config.value.java.*;
 
 import java.lang.reflect.Array;
@@ -27,9 +28,9 @@ public class ArrayPropertyDescription<C, V> extends PropertyDescriptionBase<C, V
 
     @Override
     public NormalizedProperty<V[]> createPropertyValue(V[] listValues, ClassDescriptionCache classDescriptionCache) {
-        Optional<PropertyProblem> problem = validateValue(listValues);
-        if(problem.isPresent()) {
-            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), problem.get().getDescription()));
+        ValidationResult<V[]> validationResult = validateValue(listValues);
+        if(validationResult.hasErrors()) {
+            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
 
         }
         if(listValues == null) {
@@ -47,11 +48,11 @@ public class ArrayPropertyDescription<C, V> extends PropertyDescriptionBase<C, V
 
     @Override
     public Optional<V[]> createProperty(NormalizedProperty<V[]> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
-        Optional<PropertyProblem> problem = validateNormalizedProperty(normalizedProperty, classDescriptionCache);
-        if(problem.isPresent()) {
-            throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), problem.get().getDescription()));
+        ValidationResult<V[]> validationResult = validateNormalizedProperty(normalizedProperty, classDescriptionCache);
+        if(!validationResult.isValid()) {
+            throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
         }
-        if(!normalizedProperty.getValue().isPresent()) {
+        if(normalizedProperty.getValue().isEmpty()) {
             return Optional.empty();
         }
         ArrayValue<V> normalizedList = getValue(normalizedProperty.getValue().get(), ArrayValue.class);
@@ -64,8 +65,8 @@ public class ArrayPropertyDescription<C, V> extends PropertyDescriptionBase<C, V
     }
 
     @Override
-    public Optional<PropertyProblem> validateNormalizedProperty(NormalizedProperty<V[]> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+    public ValidationResult<V[]> validateNormalizedProperty(NormalizedProperty<V[]> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
         //TODO
-        return Optional.empty();
+        return null;
     }
 }

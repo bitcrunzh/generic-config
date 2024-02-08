@@ -20,9 +20,9 @@ public interface CollectionValueDescription<T> {
 
     Value<T> createNormalizedValue(T value, ClassDescriptionCache classDescriptionCache);
 
-    T createValue(NormalizedProperty<T> normalizedValue, ClassDescriptionCache classDescriptionCache);
+    T createValue(Value<T> normalizedValue, ClassDescriptionCache classDescriptionCache);
 
     ValidationResult<T> validateValue(T property);
 
-    ValidationResult<T> validateNormalizedValue(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache);
+    ValidationResult<T> validateNormalizedValue(Value<T> normalizedProperty, ClassDescriptionCache classDescriptionCache);
 }

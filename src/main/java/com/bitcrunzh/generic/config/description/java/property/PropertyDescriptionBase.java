@@ -5,7 +5,6 @@ import com.bitcrunzh.generic.config.description.java.PropertyDescription;
 import com.bitcrunzh.generic.config.description.java.Version;
 import com.bitcrunzh.generic.config.validation.*;
 import com.bitcrunzh.generic.config.value.java.NormalizedProperty;
-import com.bitcrunzh.generic.config.value.java.SimpleValue;
 import com.bitcrunzh.generic.config.value.java.Value;
 
 import java.util.Optional;
@@ -84,22 +83,22 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     }
 
     @Override
-    public Optional<PropertyProblem> validateValueFromParent(C parentObject) {
+    public ValidationResult<T> validateValueFromParent(C parentObject) {
         T value = getterFunction.apply(parentObject);
         return validateValue(value);
     }
 
     @Override
-    public Optional<PropertyProblem> validateValue(T property) {
+    public ValidationResult<T> validateValue(T property) {
         if (property != null) {
             if (!type.isInstance(property)) {
-                return Optional.of(new PropertyTypeProblem(propertyName, type, property.getClass()));
+                return new ValidationResult<>(property, (new PropertyTypeProblem(propertyName, type, property.getClass())));
             }
             return validator.validate(property);
         } else if (!isOptional) {
-            return Optional.of(new PropertyOptionalProblem(propertyName, type));
+            return new ValidationResult<>(new PropertyOptionalProblem(propertyName, type));
         }
-        return Optional.empty();
+        return ValidationResult.empty();
     }
 
     protected <V extends Value<T>> V getValue(Value<T> value, Class<?> expectedType) {
