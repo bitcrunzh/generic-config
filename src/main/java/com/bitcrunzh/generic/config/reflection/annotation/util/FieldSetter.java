@@ -1,4 +1,4 @@
-package com.bitcrunzh.generic.config.reflection.annotation.property;
+package com.bitcrunzh.generic.config.reflection.annotation.util;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface IgnoredProperty {
+@Target(ElementType.METHOD)
+public @interface FieldSetter {
+    String fieldName();
 }

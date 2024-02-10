@@ -15,8 +15,7 @@ public class NormalizedValueFactory {
         if (classDescription == null) {
             throw new IllegalArgumentException(String.format("Could not create normalized value for type '%s', as it was neither primitive or existed in the ClassDescriptionCache", value.getClass().getSimpleName()));
         }
-        NormalizedObject<V> normalizedObject = classDescription.normalize(value, classDescriptionCache);
-        return new ObjectValue<>(normalizedObject);
+        return classDescription.normalize(value, classDescriptionCache);
     }
 
     public static boolean isSimpleType(Class<?> type) {
@@ -30,14 +29,14 @@ public class NormalizedValueFactory {
         if(normalizedValue instanceof SimpleValue) {
             return ((SimpleValue<V>) normalizedValue).getValue();
         }
-        if(!(normalizedValue instanceof ObjectValue)) {
+        if(!(normalizedValue instanceof NormalizedObject)) {
             throw new IllegalArgumentException(String.format("Cannot create value from normalized value type '%s'. It must be either a SimpleValue or ObjectValue.", normalizedValue.getClass().getSimpleName()));
         }
-        ObjectValue<V> objectValue = (ObjectValue<V>) normalizedValue;
-        ClassDescription<V> classDescription = classDescriptionCache.getClassDescription(objectValue.getValue().getType());
+        NormalizedObject<V> objectValue = (NormalizedObject<V>) normalizedValue;
+        ClassDescription<V> classDescription = classDescriptionCache.getClassDescription(objectValue.getType());
         if (classDescription == null) {
-            throw new IllegalArgumentException(String.format("Could not create value from normalized value for type '%s' modelVersion '%s', as it was neither primitive or existed in the ClassDescriptionCache", objectValue.getValue().getType().getSimpleName(), objectValue.getValue().getModelVersion()));
+            throw new IllegalArgumentException(String.format("Could not create value from normalized value for type '%s' modelVersion '%s', as it was neither primitive or existed in the ClassDescriptionCache", objectValue.getType().getSimpleName(), objectValue.getModelVersion()));
         }
-        return classDescription.denormalize(objectValue.getValue(), classDescriptionCache);
+        return classDescription.denormalize(objectValue, classDescriptionCache);
     }
 }

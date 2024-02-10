@@ -1,32 +1,30 @@
 package com.bitcrunzh.generic.config.reflection.annotation.property;
 
+import com.bitcrunzh.generic.config.reflection.annotation.property.initializer.MapDefaultValueInitializer;
+import com.bitcrunzh.generic.config.reflection.annotation.property.initializer.NoMapDefaultValue;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * The CollectionProperty can be used for properties of type: Array, List, Set.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface IntProperty {
+public @interface MapProperty {
     /**
      * @return the minimum (inclusive) valid value.
      */
-    int minValue() default Integer.MIN_VALUE;
+    int minSize() default 0;
+
     /**
      * @return the maximum (inclusive) valid value.
      */
-    int maxValue() default Integer.MAX_VALUE;
+    int maxSize() default Integer.MAX_VALUE;
 
-    /**
-     * White list of valid values.
-     * An empty array means all values.
-     */
-    int[] validValues() default {};
-
-    /**
-     * Default recommended value for this property.
-     */
-    int defaultValue() default 0;
+    Class<? extends MapDefaultValueInitializer> defaultValue() default NoMapDefaultValue.class;
 
     /**
      * Name of the property. If empty, the field name will be used.
@@ -48,4 +46,5 @@ public @interface IntProperty {
      * If optional, the default value will be used when not specified.
      */
     boolean isOptional() default true;
+
 }

@@ -153,7 +153,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     @Override
     public ValidationResult<T> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
         T value = null;
-        if (normalizedProperty.getValue().isEmpty()) {
+        if (!normalizedProperty.getValue().isPresent()) {
             value = createPropertyNoValidation(normalizedProperty.getValue().get());
         }
         return validateValue(value);

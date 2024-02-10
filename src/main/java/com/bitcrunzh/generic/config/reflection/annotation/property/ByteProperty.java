@@ -7,26 +7,26 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface IntProperty {
+public @interface ByteProperty {
     /**
      * @return the minimum (inclusive) valid value.
      */
-    int minValue() default Integer.MIN_VALUE;
+    byte minValue() default Byte.MIN_VALUE;
     /**
      * @return the maximum (inclusive) valid value.
      */
-    int maxValue() default Integer.MAX_VALUE;
+    byte maxValue() default Byte.MAX_VALUE;
 
     /**
      * White list of valid values.
      * An empty array means all values.
      */
-    int[] validValues() default {};
+    byte[] validValues() default {};
 
     /**
      * Default recommended value for this property.
      */
-    int defaultValue() default 0;
+    byte defaultValue() default 0;
 
     /**
      * Name of the property. If empty, the field name will be used.
@@ -48,4 +48,5 @@ public @interface IntProperty {
      * If optional, the default value will be used when not specified.
      */
     boolean isOptional() default true;
+
 }

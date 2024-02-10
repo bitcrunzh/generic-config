@@ -7,26 +7,26 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface IntProperty {
+public @interface DoubleProperty {
     /**
      * @return the minimum (inclusive) valid value.
      */
-    int minValue() default Integer.MIN_VALUE;
+    double minValue() default Double.MIN_VALUE;
     /**
      * @return the maximum (inclusive) valid value.
      */
-    int maxValue() default Integer.MAX_VALUE;
+    double maxValue() default Double.MAX_VALUE;
 
     /**
      * White list of valid values.
      * An empty array means all values.
      */
-    int[] validValues() default {};
+    double[] validValues() default {};
 
     /**
      * Default recommended value for this property.
      */
-    int defaultValue() default 0;
+    double defaultValue() default 0.0;
 
     /**
      * Name of the property. If empty, the field name will be used.

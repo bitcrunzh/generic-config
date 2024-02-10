@@ -1,5 +1,8 @@
 package com.bitcrunzh.generic.config.reflection.annotation.property;
 
+import com.bitcrunzh.generic.config.reflection.annotation.property.initializer.ClassDefaultValueInitializer;
+import com.bitcrunzh.generic.config.reflection.annotation.property.initializer.NoClassDefaultValue;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -7,26 +10,17 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface IntProperty {
-    /**
-     * @return the minimum (inclusive) valid value.
-     */
-    int minValue() default Integer.MIN_VALUE;
-    /**
-     * @return the maximum (inclusive) valid value.
-     */
-    int maxValue() default Integer.MAX_VALUE;
-
-    /**
-     * White list of valid values.
-     * An empty array means all values.
-     */
-    int[] validValues() default {};
+public @interface ClassProperty {
 
     /**
      * Default recommended value for this property.
      */
-    int defaultValue() default 0;
+    Class<? extends ClassDefaultValueInitializer> defaultValue() default NoClassDefaultValue.class;
+
+    /**
+     * The polymorphic subclasses which may be assigned to this property.
+     */
+    Class<?>[] subClasses() default {};
 
     /**
      * Name of the property. If empty, the field name will be used.
@@ -48,4 +42,5 @@ public @interface IntProperty {
      * If optional, the default value will be used when not specified.
      */
     boolean isOptional() default true;
+
 }
