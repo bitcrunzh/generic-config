@@ -2,68 +2,58 @@ package com.bitcrunzh.generic.config.description.java.property;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.Version;
-import com.bitcrunzh.generic.config.validation.PropertyProblem;
 import com.bitcrunzh.generic.config.validation.PropertyValidator;
-import com.bitcrunzh.generic.config.value.java.ListValue;
-import com.bitcrunzh.generic.config.value.java.NormalizedProperty;
-import com.bitcrunzh.generic.config.value.java.NormalizedValueFactory;
+import com.bitcrunzh.generic.config.value.java.MapValue;
 import com.bitcrunzh.generic.config.value.java.Value;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+
 //TODO support map
 public class MapPropertyDescription<C, K, V> extends PropertyDescriptionBase<C, Map<K, V>> {
     private final CollectionValueDescription<K> mapKeyDescription;
     private final CollectionValueDescription<V> mapValueDescription;
-    public MapPropertyDescription(String propertyName, String description, List<V> defaultValue, Class<C> parentType, Class<List<V>> type, PropertyValidator<List<V>> validator, boolean isOptional, Version introducedInVersion, Function<C, List<V>> getterFunction) {
-        super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction);
+    private final ClassDescriptionCache classDescriptionCache;
+
+    public MapPropertyDescription(String propertyName, String description, Map<K, V> defaultValue, Class<C> parentType, Class<Map<K, V>> type, PropertyValidator<Map<K, V>>validator, CollectionValueDescription<K> mapKeyDescription, CollectionValueDescription<V> mapValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Map<K, V>> getterFunction, ClassDescriptionCache classDescriptionCache) {
+        this(propertyName, description, defaultValue, parentType, type, validator, mapKeyDescription, mapValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
     }
 
-    public MapPropertyDescription(String propertyName, String description, List<V> defaultValue, Class<C> parentType, Class<List<V>> type, PropertyValidator<List<V>> validator, boolean isOptional, Version introducedInVersion, Function<C, List<V>> getterFunction, BiConsumer<C, List<V>> setterFunction) {
+    public MapPropertyDescription(String propertyName, String description, Map<K, V> defaultValue, Class<C> parentType, Class<Map<K, V>> type, PropertyValidator<Map<K, V>> validator, CollectionValueDescription<K> mapKeyDescription, CollectionValueDescription<V> mapValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Map<K, V>> getterFunction, BiConsumer<C, Map<K, V>> setterFunction, ClassDescriptionCache classDescriptionCache) {
         super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction, setterFunction);
+        this.mapKeyDescription = mapKeyDescription;
+        this.mapValueDescription = mapValueDescription;
+        this.classDescriptionCache = classDescriptionCache;
     }
 
     @Override
-    public NormalizedProperty<List<V>> createPropertyValue(List<V> listValues, ClassDescriptionCache classDescriptionCache) {
-        Optional<PropertyProblem> problem = validateValue(listValues);
-        if(problem.isPresent()) {
-            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), problem.get().getDescription()));
-
+    protected Map<K, V> createPropertyNoValidation(Value<Map<K, V>> normalizedProperty) {
+        if (normalizedProperty == null) {
+            return null;
         }
-        if(listValues == null) {
-            return new NormalizedProperty<>(getPropertyName(), null);
+        Map<K, V> map = new HashMap<>();
+        MapValue<K, V> normalizedMap = getValueAsType(normalizedProperty, MapValue.class);
+        for(Map.Entry<Value<K>, Value<V>> normalizedKeyValue : normalizedMap.getValue().entrySet()) {
+            K key = mapKeyDescription.convertToValue(normalizedKeyValue.getKey(), classDescriptionCache);
+            V value = mapValueDescription.convertToValue(normalizedKeyValue.getValue(), classDescriptionCache);
+            map.put(key, value);
         }
-        List<Value<V>> normalizedValues = new ArrayList<>();
-        for (V value : listValues) {
-            Value<V> normalizedValue = NormalizedValueFactory.convertToNormalizedValue(value, classDescriptionCache);
-            normalizedValues.add(normalizedValue);
-        }
-        return new NormalizedProperty<>(getPropertyName(), new ListValue<>(normalizedValues));
+        return map;
     }
 
     @Override
-    public Optional<List<V>> createProperty(NormalizedProperty<List<V>> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
-        Optional<PropertyProblem> problem = validateNormalizedProperty(normalizedProperty, classDescriptionCache);
-        if(problem.isPresent()) {
-            throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), problem.get().getDescription()));
+    protected Value<Map<K, V>> createNormalizedPropertyNoValidation(Map<K, V> property) {
+        if(property == null)  {
+            return null;
         }
-        if(!normalizedProperty.getValue().isPresent()) {
-            return Optional.empty();
+        Map<Value<K>, Value<V>> normalizedMap = new HashMap<>();
+        for(Map.Entry<K, V> entry : property.entrySet()) {
+            Value<K> key = mapKeyDescription.convertToNormalizedValue(entry.getKey(), classDescriptionCache);
+            Value<V> value = mapValueDescription.convertToNormalizedValue(entry.getValue(), classDescriptionCache);
+            normalizedMap.put(key, value);
         }
-        List<V> valueList = new ArrayList<>();
-        ListValue<V> normalizedList = getValue(normalizedProperty.getValue().get(), ListValue.class);
-        for(Value<V> normalizedValue : normalizedList.getValue()) {
-            valueList.add(NormalizedValueFactory.convertToValue(normalizedValue, classDescriptionCache));
-        }
-        return Optional.of(valueList);
-    }
-
-    @Override
-    public Optional<PropertyProblem> validateNormalizedProperty(NormalizedProperty<List<V>> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
-        return Optional.empty();
+        return new MapValue<>(normalizedMap);
     }
 }

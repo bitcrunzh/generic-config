@@ -2,38 +2,64 @@ package com.bitcrunzh.generic.config.description.java.property;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.Version;
-import com.bitcrunzh.generic.config.validation.PropertyProblem;
 import com.bitcrunzh.generic.config.validation.PropertyValidator;
-import com.bitcrunzh.generic.config.value.java.NormalizedProperty;
+import com.bitcrunzh.generic.config.validation.ValidationResult;
+import com.bitcrunzh.generic.config.value.java.SetValue;
+import com.bitcrunzh.generic.config.value.java.Value;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class SetPropertyDescription<C, V> extends PropertyDescriptionBase<C, Set<V>> {
-    //TODO implement
-    public SetPropertyDescription(String propertyName, String description, Set<V> defaultValue, Class<C> parentType, Class<Set<V>> type, PropertyValidator<Set<V>> validator, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction) {
-        super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction);
+    private final CollectionValueDescription<V> collectionValueDescription;
+    private final ClassDescriptionCache classDescriptionCache;
+    public SetPropertyDescription(String propertyName, String description, Set<V> defaultValue, Class<C> parentType, PropertyValidator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, ClassDescriptionCache classDescriptionCache) {
+        this(propertyName, description, defaultValue, parentType, validator, collectionValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
     }
 
-    public SetPropertyDescription(String propertyName, String description, Set<V> defaultValue, Class<C> parentType, Class<Set<V>> type, PropertyValidator<Set<V>> validator, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, BiConsumer<C, Set<V>> setterFunction) {
-        super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction, setterFunction);
+    public SetPropertyDescription(String propertyName, String description, Set<V> defaultValue, Class<C> parentType, PropertyValidator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, BiConsumer<C, Set<V>> setterFunction, ClassDescriptionCache classDescriptionCache) {
+        super(propertyName, description, defaultValue, parentType, createSetClass(), propertyValue -> {
+            ValidationResult<Set<V>> validationResult = validator.validate(propertyValue);
+            for (V v : propertyValue) {
+                validationResult.addValidationResult(collectionValueDescription.validateValue(v));
+            }
+            return validationResult;
+        }, isOptional, introducedInVersion, getterFunction, setterFunction);
+        this.collectionValueDescription = collectionValueDescription;
+        this.classDescriptionCache = classDescriptionCache;
+    }
+
+    @SuppressWarnings({"unchecked", "MismatchedQueryAndUpdateOfCollection"})
+    private static <V> Class<Set<V>> createSetClass() {
+        Set<V> set = new HashSet<>();
+        return (Class<Set<V>>) set.getClass();
     }
 
     @Override
-    public NormalizedProperty<Set<V>> createPropertyValue(Set<V> property, ClassDescriptionCache classDescriptionCache) {
-        return null;
+    protected Set<V> createPropertyNoValidation(Value<Set<V>> normalizedValue) {
+        if(normalizedValue == null) {
+            return null;
+        }
+        SetValue<V> normalizedSet = getValueAsType(normalizedValue, SetValue.class);
+        Set<V> valueSet = new HashSet<>();
+        for(Value<V> normalizedSetElement : normalizedSet.getValue()) {
+            valueSet.add(collectionValueDescription.convertToValue(normalizedSetElement, classDescriptionCache));
+        }
+        return valueSet;
     }
 
     @Override
-    public Optional<Set<V>> createProperty(NormalizedProperty<Set<V>> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<PropertyProblem> validateNormalizedProperty(NormalizedProperty<Set<V>> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
-        return Optional.empty();
+    protected Value<Set<V>> createNormalizedPropertyNoValidation(Set<V> property) {
+        if(property == null) {
+            return null;
+        }
+        Set<Value<V>> normalizedValues = new HashSet<>();
+        for (V value : property) {
+            Value<V> normalizedValue = collectionValueDescription.convertToNormalizedValue(value, classDescriptionCache);
+            normalizedValues.add(normalizedValue);
+        }
+        return new SetValue<>(normalizedValues);
     }
 }

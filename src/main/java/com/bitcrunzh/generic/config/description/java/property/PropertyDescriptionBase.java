@@ -101,7 +101,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
         return ValidationResult.empty();
     }
 
-    protected <V extends Value<T>> V getValue(Value<T> value, Class<?> expectedType) {
+    protected <V extends Value<T>> V getValueAsType(Value<T> value, Class<?> expectedType) {
         if (!expectedType.isInstance(value)) {
             throw new IllegalArgumentException(PropertyDescriptionProblem.createDescription(getParentType(), getType(), getPropertyName(), expectedType, value.getClass()));
         }
@@ -123,4 +123,43 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     public Class<C> getParentType() {
         return parentType;
     }
+
+    @Override
+    public NormalizedProperty<T> createPropertyValue(T property, ClassDescriptionCache classDescriptionCache) {
+        ValidationResult<T> validationResult = validateValue(property);
+        if (validationResult.hasErrors()) {
+            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
+        }
+        if (property == null) {
+            return new NormalizedProperty<>(getPropertyName(), null);
+        }
+        Value<T> normalizedValue = createNormalizedPropertyNoValidation(property);
+        return new NormalizedProperty<>(propertyName, normalizedValue);
+    }
+
+    @Override
+    public Optional<T> createProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+        T value = null;
+        if (normalizedProperty.getValue().isPresent()) {
+            value = createPropertyNoValidation(normalizedProperty.getValue().get());
+        }
+        ValidationResult<T> validationResult = validateValue(value);
+        if (!validationResult.isValid()) {
+            throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
+        }
+        return Optional.of(validationResult.getValidatedObject());
+    }
+
+    @Override
+    public ValidationResult<T> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+        T value = null;
+        if (normalizedProperty.getValue().isEmpty()) {
+            value = createPropertyNoValidation(normalizedProperty.getValue().get());
+        }
+        return validateValue(value);
+    }
+
+    protected abstract T createPropertyNoValidation(Value<T> normalizedValue);
+
+    protected abstract Value<T> createNormalizedPropertyNoValidation(T property);
 }
