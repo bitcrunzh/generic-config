@@ -37,7 +37,7 @@ public class ArrayPropertyDescription<C, V> extends PropertyDescriptionBase<C, V
     }
 
     @Override
-    public V[] createPropertyNoValidation(Value<V[]> normalizedValue) {
+    public V[] createPropertyNoValidation(Value normalizedValue) {
         if (normalizedValue == null) {
             return null;
         }
@@ -50,11 +50,11 @@ public class ArrayPropertyDescription<C, V> extends PropertyDescriptionBase<C, V
     }
 
     @Override
-    protected Value<V[]> createNormalizedPropertyNoValidation(V[] listValues) {
-        @SuppressWarnings("unchecked") Value<V>[] normalizedValues = new Value[listValues.length];
+    protected Value createNormalizedPropertyNoValidation(V[] listValues) {
+        @SuppressWarnings("unchecked") Value[] normalizedValues = new Value[listValues.length];
         for (int i = 0; i < listValues.length; i++) {
             V value = listValues[i];
-            Value<V> normalizedValue = collectionValueDescription.convertToNormalizedValue(value, classDescriptionCache);
+            Value normalizedValue = collectionValueDescription.convertToNormalizedValue(value, classDescriptionCache);
             normalizedValues[i] = normalizedValue;
         }
         return new ArrayValue<>(normalizedValues);

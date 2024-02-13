@@ -29,13 +29,13 @@ public class MapPropertyDescription<C, K, V> extends PropertyDescriptionBase<C, 
     }
 
     @Override
-    protected Map<K, V> createPropertyNoValidation(Value<Map<K, V>> normalizedProperty) {
+    protected Map<K, V> createPropertyNoValidation(Value normalizedProperty) {
         if (normalizedProperty == null) {
             return null;
         }
         Map<K, V> map = new HashMap<>();
         MapValue<K, V> normalizedMap = getValueAsType(normalizedProperty, MapValue.class);
-        for(Map.Entry<Value<K>, Value<V>> normalizedKeyValue : normalizedMap.getValue().entrySet()) {
+        for(Map.Entry<Value, Value> normalizedKeyValue : normalizedMap.getValue().entrySet()) {
             K key = mapKeyDescription.convertToValue(normalizedKeyValue.getKey(), classDescriptionCache);
             V value = mapValueDescription.convertToValue(normalizedKeyValue.getValue(), classDescriptionCache);
             map.put(key, value);
@@ -44,14 +44,14 @@ public class MapPropertyDescription<C, K, V> extends PropertyDescriptionBase<C, 
     }
 
     @Override
-    protected Value<Map<K, V>> createNormalizedPropertyNoValidation(Map<K, V> property) {
+    protected Value createNormalizedPropertyNoValidation(Map<K, V> property) {
         if(property == null)  {
             return null;
         }
-        Map<Value<K>, Value<V>> normalizedMap = new HashMap<>();
+        Map<Value, Value> normalizedMap = new HashMap<>();
         for(Map.Entry<K, V> entry : property.entrySet()) {
-            Value<K> key = mapKeyDescription.convertToNormalizedValue(entry.getKey(), classDescriptionCache);
-            Value<V> value = mapValueDescription.convertToNormalizedValue(entry.getValue(), classDescriptionCache);
+            Value key = mapKeyDescription.convertToNormalizedValue(entry.getKey(), classDescriptionCache);
+            Value value = mapValueDescription.convertToNormalizedValue(entry.getValue(), classDescriptionCache);
             normalizedMap.put(key, value);
         }
         return new MapValue<>(normalizedMap);

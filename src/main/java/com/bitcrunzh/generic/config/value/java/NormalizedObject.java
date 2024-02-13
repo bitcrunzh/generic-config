@@ -4,7 +4,7 @@ import com.bitcrunzh.generic.config.description.java.Version;
 
 import java.util.Collection;
 
-public class NormalizedObject<T> implements Value<T> {
+public class NormalizedObject<T> implements Value {
     private final Class<T> type;
     private final Collection<NormalizedProperty<?>> properties;
     private final Version modelVersion;

@@ -62,7 +62,7 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
     }
 
     @Override
-    protected T createPropertyNoValidation(Value<T> normalizedValue) {
+    protected T createPropertyNoValidation(Value normalizedValue) {
         if (normalizedValue == null) {
             return null;
         }
@@ -73,7 +73,7 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
     }
 
     @Override
-    protected Value<T> createNormalizedPropertyNoValidation(T property) {
+    protected Value createNormalizedPropertyNoValidation(T property) {
         @SuppressWarnings("unchecked") ClassDescription<T> classDescription = (ClassDescription<T>) classDescriptionCache.getClassDescription(property.getClass());
         if (classDescription == null) {
             throw new IllegalArgumentException(String.format("ClassPropertyDescription for topType '%s', subTypes '%s', cannot be used for type '%s' as no ClassDescription could be found in the ClassDescriptionCache.", getType().getSimpleName(), PrintUtil.printSimpleClassNames(allTypes), property.getClass().getSimpleName()));

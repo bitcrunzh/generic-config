@@ -18,13 +18,13 @@ public class SimplePropertyDescription<C, T> extends PropertyDescriptionBase<C, 
     }
 
     @Override
-    protected T createPropertyNoValidation(Value<T> normalizedValue) {
+    protected T createPropertyNoValidation(Value normalizedValue) {
         SimpleValue<T> value = getValueAsType(normalizedValue, SimpleValue.class);
         return value.getValue();
     }
 
     @Override
-    protected Value<T> createNormalizedPropertyNoValidation(T property) {
+    protected Value createNormalizedPropertyNoValidation(T property) {
         return new SimpleValue<>(property);
     }
 }

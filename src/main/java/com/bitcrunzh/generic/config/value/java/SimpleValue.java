@@ -1,8 +1,6 @@
 package com.bitcrunzh.generic.config.value.java;
 
-import java.util.Optional;
-
-public class SimpleValue<T> implements Value<T> {
+public class SimpleValue<T> implements Value {
     private final T value;
 
     public SimpleValue(T value) {

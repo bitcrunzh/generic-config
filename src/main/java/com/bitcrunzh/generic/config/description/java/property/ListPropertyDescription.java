@@ -38,26 +38,26 @@ public class ListPropertyDescription<C, V> extends PropertyDescriptionBase<C, Li
     }
 
     @Override
-    protected List<V> createPropertyNoValidation(Value<List<V>> normalizedValue) {
+    protected List<V> createPropertyNoValidation(Value normalizedValue) {
         if(normalizedValue == null) {
             return null;
         }
         ListValue<V> normalizedList = getValueAsType(normalizedValue, ListValue.class);
         List<V> valueList = new ArrayList<>();
-        for(Value<V> normalizedListElement : normalizedList.getValue()) {
+        for(Value normalizedListElement : normalizedList.getValue()) {
             valueList.add(collectionValueDescription.convertToValue(normalizedListElement, classDescriptionCache));
         }
         return valueList;
     }
 
     @Override
-    protected Value<List<V>> createNormalizedPropertyNoValidation(List<V> property) {
+    protected Value createNormalizedPropertyNoValidation(List<V> property) {
         if(property == null) {
             return null;
         }
-        List<Value<V>> normalizedValues = new ArrayList<>();
+        List<Value> normalizedValues = new ArrayList<>();
         for (V value : property) {
-            Value<V> normalizedValue = collectionValueDescription.convertToNormalizedValue(value, classDescriptionCache);
+            Value normalizedValue = collectionValueDescription.convertToNormalizedValue(value, classDescriptionCache);
             normalizedValues.add(normalizedValue);
         }
         return new ListValue<>(normalizedValues);

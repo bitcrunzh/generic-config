@@ -4,7 +4,7 @@ import com.bitcrunzh.generic.config.description.java.ClassDescription;
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 
 public class NormalizedValueFactory {
-    public static <V> Value<V> convertToNormalizedValue(V value, ClassDescriptionCache classDescriptionCache) {
+    public static <V> Value convertToNormalizedValue(V value, ClassDescriptionCache classDescriptionCache) {
         if (value == null) {
             throw new IllegalArgumentException("Cannot create a specialized value type from null.");
         }
@@ -25,7 +25,7 @@ public class NormalizedValueFactory {
         return false;
     }
 
-    public static <V> V convertToValue(Value<V> normalizedValue, ClassDescriptionCache classDescriptionCache) {
+    public static <V> V convertToValue(Value normalizedValue, ClassDescriptionCache classDescriptionCache) {
         if(normalizedValue instanceof SimpleValue) {
             return ((SimpleValue<V>) normalizedValue).getValue();
         }

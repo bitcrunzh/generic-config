@@ -38,26 +38,26 @@ public class SetPropertyDescription<C, V> extends PropertyDescriptionBase<C, Set
     }
 
     @Override
-    protected Set<V> createPropertyNoValidation(Value<Set<V>> normalizedValue) {
+    protected Set<V> createPropertyNoValidation(Value normalizedValue) {
         if(normalizedValue == null) {
             return null;
         }
         SetValue<V> normalizedSet = getValueAsType(normalizedValue, SetValue.class);
         Set<V> valueSet = new HashSet<>();
-        for(Value<V> normalizedSetElement : normalizedSet.getValue()) {
+        for(Value normalizedSetElement : normalizedSet.getValue()) {
             valueSet.add(collectionValueDescription.convertToValue(normalizedSetElement, classDescriptionCache));
         }
         return valueSet;
     }
 
     @Override
-    protected Value<Set<V>> createNormalizedPropertyNoValidation(Set<V> property) {
+    protected Value createNormalizedPropertyNoValidation(Set<V> property) {
         if(property == null) {
             return null;
         }
-        Set<Value<V>> normalizedValues = new HashSet<>();
+        Set<Value> normalizedValues = new HashSet<>();
         for (V value : property) {
-            Value<V> normalizedValue = collectionValueDescription.convertToNormalizedValue(value, classDescriptionCache);
+            Value normalizedValue = collectionValueDescription.convertToNormalizedValue(value, classDescriptionCache);
             normalizedValues.add(normalizedValue);
         }
         return new SetValue<>(normalizedValues);

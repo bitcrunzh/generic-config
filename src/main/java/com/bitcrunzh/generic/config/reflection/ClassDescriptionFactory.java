@@ -52,7 +52,7 @@ public class ClassDescriptionFactory {
                 continue;
             }
             if(isEmptyConstructor && propertiesRequiredInConstructor.isEmpty()) {
-                return createConstructorFunction(propertiesToUseSetter, propertiesToUseConstructor, propertyDescriptions, constructor)
+                return createConstructorFunction(propertiesToUseSetter, propertiesToUseConstructor, propertyDescriptions, constructor);
             }
                 ConstructParamFieldMapping paramFieldMapping = constructor.getAnnotation(ConstructParamFieldMapping.class);
         }
@@ -60,9 +60,11 @@ public class ClassDescriptionFactory {
     }
 
     private static <T> Set<String> getPropertyNames(List<PropertyDescription<T,?>> propertyDescriptions) {
+        return null;
     }
 
     private static <T> Set<String> filterPropertiesWithNoSetter(List<PropertyDescription<T,?>> propertyDescriptions) {
+        return null;
     }
 
     private static <T> Function<NormalizedObject<T>, T> createConstructorFunction(Set<String> propertiesToUseSetter, List<String> propertiesToUseConstructor, List<PropertyDescription<T, ?>> propertyDescriptions, Constructor<?> constructor) {

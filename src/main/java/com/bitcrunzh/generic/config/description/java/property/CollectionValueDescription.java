@@ -16,11 +16,11 @@ public interface CollectionValueDescription<T> {
 
     Version getIntroducedInVersion();
 
-    Value<T> convertToNormalizedValue(T value, ClassDescriptionCache classDescriptionCache);
+    Value convertToNormalizedValue(T value, ClassDescriptionCache classDescriptionCache);
 
-    T convertToValue(Value<T> normalizedValue, ClassDescriptionCache classDescriptionCache);
+    T convertToValue(Value normalizedValue, ClassDescriptionCache classDescriptionCache);
 
     ValidationResult<T> validateValue(T property);
 
-    ValidationResult<T> validateNormalizedValue(Value<T> normalizedProperty, ClassDescriptionCache classDescriptionCache);
+    ValidationResult<T> validateNormalizedValue(Value normalizedProperty, ClassDescriptionCache classDescriptionCache);
 }

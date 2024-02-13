@@ -1,15 +1,13 @@
 package com.bitcrunzh.generic.config.value.java;
 
-import java.util.Optional;
+public class ArrayValue<T> implements Value {
+    private final Value[] value;
 
-public class ArrayValue<T> implements Value<T[]> {
-    private final Value<T>[] value;
-
-    public ArrayValue(Value<T>[] value) {
+    public ArrayValue(Value[] value) {
         this.value = value;
     }
 
-    public Value<T>[] getValue() {
+    public Value[] getValue() {
         return value;
     }
 }

@@ -1,0 +1,9 @@
+Scope to implement
+1)  Add configuration field application scope (where it can be applied) - for instance, a configured specific IP-Address
+    is likely machine local, hence if generalizing a configuration to share it with others, stripping installation local
+    configuration may make sense (unless it is SMT configuring specifically for another installation).
+2)  Make configuration values reference values from environment variables or possibly other system information.
+3)  Make configuration default values optionally dynamically assigned - applying a lookup implementation, for instance
+    searching for a COM-Port matching a pattern etc. (Not possible to normalize to JSON and XML).
+    Likewise, add a temporary list of installation contextual valid values (which is not used for general
+    cross-installation validation), such as current local IP Addresses or available COM-Ports etc.

@@ -101,7 +101,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
         return ValidationResult.empty();
     }
 
-    protected <V extends Value<T>> V getValueAsType(Value<T> value, Class<?> expectedType) {
+    protected <V extends Value> V getValueAsType(Value value, Class<?> expectedType) {
         if (!expectedType.isInstance(value)) {
             throw new IllegalArgumentException(PropertyDescriptionProblem.createDescription(getParentType(), getType(), getPropertyName(), expectedType, value.getClass()));
         }
@@ -133,7 +133,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
         if (property == null) {
             return new NormalizedProperty<>(getPropertyName(), null);
         }
-        Value<T> normalizedValue = createNormalizedPropertyNoValidation(property);
+        Value normalizedValue = createNormalizedPropertyNoValidation(property);
         return new NormalizedProperty<>(propertyName, normalizedValue);
     }
 
@@ -159,7 +159,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
         return validateValue(value);
     }
 
-    protected abstract T createPropertyNoValidation(Value<T> normalizedValue);
+    protected abstract T createPropertyNoValidation(Value normalizedValue);
 
-    protected abstract Value<T> createNormalizedPropertyNoValidation(T property);
+    protected abstract Value createNormalizedPropertyNoValidation(T property);
 }

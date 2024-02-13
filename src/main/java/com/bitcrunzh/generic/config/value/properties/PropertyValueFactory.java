@@ -11,7 +11,7 @@ public class PropertyValueFactory {
     public static <T> Map<String, String> createProperties(String keyPrefix, SimpleValue<T> value) {
         return Collections.emptyMap();
     }
-    public static <T> Map<String, String> createProperties(String keyPrefix, Value<T> value, ClassDescription<T> classDescription) {
+    public static <T> Map<String, String> createProperties(String keyPrefix, Value value, ClassDescription<T> classDescription) {
         return Collections.emptyMap();
     }
 }

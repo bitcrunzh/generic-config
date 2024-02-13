@@ -4,9 +4,9 @@ import java.util.Optional;
 
 public class NormalizedProperty<T> {
     private final String propertyName;
-    private final Value<T> value;
+    private final Value value;
 
-    public NormalizedProperty(String propertyName, Value<T> value) {
+    public NormalizedProperty(String propertyName, Value value) {
         this.propertyName = propertyName;
         this.value = value;
     }
@@ -14,7 +14,7 @@ public class NormalizedProperty<T> {
     public String getPropertyName() {
         return propertyName;
     }
-    public Optional<Value<T>> getValue() {
+    public Optional<Value> getValue() {
         return Optional.ofNullable(value);
     }
 }
