@@ -69,7 +69,7 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
         NormalizedObject<T> objectValue = getValueAsType(normalizedValue, NormalizedObject.class);
         ClassDescription<T> classDescription = classDescriptionCache.getClassDescription(objectValue.getType());
 
-        return classDescription.denormalize(objectValue, classDescriptionCache);
+        return classDescription.denormalize(objectValue);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
         if (classDescription == null) {
             throw new IllegalArgumentException(String.format("ClassPropertyDescription for topType '%s', subTypes '%s', cannot be used for type '%s' as no ClassDescription could be found in the ClassDescriptionCache.", getType().getSimpleName(), PrintUtil.printSimpleClassNames(allTypes), property.getClass().getSimpleName()));
         }
-        return classDescription.normalize(property, classDescriptionCache);
+        return classDescription.normalize(property);
     }
 
 }

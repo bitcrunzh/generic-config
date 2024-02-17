@@ -42,8 +42,8 @@ public class ClassDescription<T> {
         return Collections.unmodifiableList(propertyDescriptions);
     }
 
-    public T denormalize(NormalizedObject<T> object, ClassDescriptionCache classDescriptionCache) {
-        ValidationResult<T> validationResult = validate(object, classDescriptionCache);
+    public T denormalize(NormalizedObject<T> object) {
+        ValidationResult<T> validationResult = validate(object);
         if (validationResult.isValid()) {
             throw new IllegalArgumentException(String.format("ObjectValue could not be used to create an instance of '%s' as it was not valid. Reason: '%s'", type.getSimpleName(), validationResult));
         }
@@ -53,7 +53,7 @@ public class ClassDescription<T> {
         return constructorFunction.apply(object);
     }
 
-    public NormalizedObject<T> normalize(T object, ClassDescriptionCache classDescriptionCache) {
+    public NormalizedObject<T> normalize(T object) {
         if (object == null) {
             throw new IllegalArgumentException("Cannot normalize a null object.");
         }
@@ -63,7 +63,7 @@ public class ClassDescription<T> {
         }
         List<NormalizedProperty<?>> normalizedPropertyValues = new ArrayList<>();
         for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
-            normalizedPropertyValues.add(propertyDescription.createPropertyValueFromParent(object, classDescriptionCache));
+            normalizedPropertyValues.add(propertyDescription.createNormalizedPropertyFromParent(object));
         }
         return new NormalizedObject<>(type, normalizedPropertyValues, modelVersion);
     }
@@ -71,19 +71,19 @@ public class ClassDescription<T> {
     public ValidationResult<T> validate(T object) {
         ValidationResult<T> validationResult = objectValidator.validate(object);
         for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
-            validationResult.addValidationResult(propertyDescription.validateValueFromParent(object));
+            validationResult.addValidationResult(propertyDescription.validatePropertyFromParent(object));
         }
         return validationResult;
     }
 
-    public ValidationResult<T> validate(NormalizedObject<T> normalizedObject, ClassDescriptionCache classDescriptionCache) {
+    public ValidationResult<T> validate(NormalizedObject<T> normalizedObject) {
         ValidationResult<?> validationProblems = new ValidationResult<>();
         if (!normalizedObject.getType().equals(type)) {
             validationProblems.addValidationProblem(new ClassTypeProblem(type, normalizedObject.getType()));
         }
         Set<String> mandatoryPropertiesToFind = new HashSet<>(mandatoryProperties);
         for (NormalizedProperty<?> normalizedProperty : normalizedObject.getProperties()) {
-            validationProblems.addValidationResult(assertPropertyValueValid(normalizedProperty, classDescriptionCache));
+            validationProblems.addValidationResult(assertPropertyValueValid(normalizedProperty));
             mandatoryPropertiesToFind.remove(normalizedProperty.getPropertyName());
         }
         if (!mandatoryPropertiesToFind.isEmpty()) {
@@ -95,11 +95,11 @@ public class ClassDescription<T> {
         return validationResult;
     }
 
-    private <V> ValidationResult<V> assertPropertyValueValid(NormalizedProperty<V> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+    private <V> ValidationResult<V> assertPropertyValueValid(NormalizedProperty<V> normalizedProperty) {
         @SuppressWarnings("unchecked") PropertyDescription<T, V> propertyDescription = (PropertyDescription<T, V>) namePropertyMap.get(normalizedProperty.getPropertyName());
         if (propertyDescription == null) {
             return new ValidationResult<>(new UnknownPropertyWarning(normalizedProperty.getPropertyName(), normalizedProperty.getValue()));
         }
-        return propertyDescription.validateNormalizedProperty(normalizedProperty, classDescriptionCache);
+        return propertyDescription.validateNormalizedProperty(normalizedProperty);
     }
 }

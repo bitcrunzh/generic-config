@@ -15,7 +15,7 @@ public class NormalizedValueFactory {
         if (classDescription == null) {
             throw new IllegalArgumentException(String.format("Could not create normalized value for type '%s', as it was neither primitive or existed in the ClassDescriptionCache", value.getClass().getSimpleName()));
         }
-        return classDescription.normalize(value, classDescriptionCache);
+        return classDescription.normalize(value);
     }
 
     public static boolean isSimpleType(Class<?> type) {
@@ -37,6 +37,6 @@ public class NormalizedValueFactory {
         if (classDescription == null) {
             throw new IllegalArgumentException(String.format("Could not create value from normalized value for type '%s' modelVersion '%s', as it was neither primitive or existed in the ClassDescriptionCache", objectValue.getType().getSimpleName(), objectValue.getModelVersion()));
         }
-        return classDescription.denormalize(objectValue, classDescriptionCache);
+        return classDescription.denormalize(objectValue);
     }
 }

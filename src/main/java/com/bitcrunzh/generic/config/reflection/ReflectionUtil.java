@@ -2,6 +2,7 @@ package com.bitcrunzh.generic.config.reflection;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.PropertyDescription;
+import com.bitcrunzh.generic.config.reflection.annotation.property.IgnoredProperty;
 import com.bitcrunzh.generic.config.reflection.annotation.util.ConstructParamFieldMapping;
 import com.bitcrunzh.generic.config.reflection.annotation.util.FieldGetter;
 import com.bitcrunzh.generic.config.reflection.annotation.util.FieldSetter;
@@ -96,11 +97,7 @@ public class ReflectionUtil {
         return null;
     }
 
-    public static <T> Function<NormalizedObject<T>, T> findconstructor(List<PropertyDescription<T, ?>> propertyDescriptions, Class<T> type) {
-        return new ConstructorMatch<>(true, );
-    }
-
-    private static <T> Function<NormalizedObject<T>, T> createConstructor(final Class<T> type, List<PropertyDescription<T, ?>> propertyDescriptions) {
+    public static <T> Function<NormalizedObject<T>, T> createConstructorFunction(final Class<T> type, List<PropertyDescription<T, ?>> propertyDescriptions, ClassDescriptionCache classDescriptionCache) {
         Map<String, PropertyDescription<T, ?>> propertyMap = new HashMap<>();
         List<PropertyDescription<T, ?>> propertyDescriptionsToMatch = new ArrayList<>(propertyDescriptions);
         for (PropertyDescription<T, ?> property : propertyDescriptionsToMatch) {
@@ -109,7 +106,7 @@ public class ReflectionUtil {
 
         List<String> notMatchingConstructors = new ArrayList<>();
         for (final Constructor<?> constructor : type.getDeclaredConstructors()) {
-            @SuppressWarnings("unchecked") ConstructorMatch<T> typedConstructor = createConstructorFunctionIfMatchesProperties(type, propertyDescriptionsToMatch, (Constructor<T>) constructor, notMatchingConstructors, propertyMap);
+            @SuppressWarnings("unchecked") Function<NormalizedObject<T>, T> typedConstructor = createConstructorFunctionIfMatchesProperties(type, propertyDescriptionsToMatch, (Constructor<T>) constructor, notMatchingConstructors, propertyMap, classDescriptionCache);
             if (typedConstructor != null) return typedConstructor;
         }
         StringBuilder stringBuilder = new StringBuilder();
@@ -120,7 +117,7 @@ public class ReflectionUtil {
         throw new IllegalStateException(String.format("No suitable public constructor found for type %s. The following constructors was found but not matching:%s", type.getSimpleName(), stringBuilder));
     }
 
-    private static <T> Function<NormalizedObject<T>, T> createConstructorFunctionIfMatchesProperties(Class<T> type, List<PropertyDescription<T, ?>> propertyDescriptions, Constructor<T> constructor, List<String> notMatchingConstructors, Map<String, PropertyDescription<T, ?>> propertyMap) {
+    private static <T> Function<NormalizedObject<T>, T> createConstructorFunctionIfMatchesProperties(Class<T> type, List<PropertyDescription<T, ?>> propertyDescriptions, Constructor<T> constructor, List<String> notMatchingConstructors, Map<String, PropertyDescription<T, ?>> propertyMap, ClassDescriptionCache classDescriptionCache) {
         if (!type.isAssignableFrom(constructor.getDeclaringClass())) {
             return null;
         }
@@ -131,8 +128,10 @@ public class ReflectionUtil {
         final Constructor<T> typedConstructor = constructor;
 
         Set<String> unassignedParameters = new HashSet<>();
+        Map<String, PropertyDescription<T, ?>> propertyDescriptionMap = new HashMap<>();
         for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
             unassignedParameters.add(propertyDescription.getPropertyName());
+            propertyDescriptionMap.put(propertyDescription.getPropertyName(), propertyDescription);
         }
 
         if (propertyDescriptions.isEmpty()) {
@@ -149,7 +148,7 @@ public class ReflectionUtil {
 
         final Map<String, ConstructorParameter> fieldNameConstructorParameters = createFieldNameToConstructorParameterMap(mappedParametersConAnno);
         if (parameterTypes.length > 0 && fieldNameConstructorParameters.size() != parameterTypes.length) {
-            notMatchingConstructors.add(String.format("%s(%s) - Constructor has parameters, but they are not all mapped to fields. Please use either @%s or @%s constructor annotations to map constructor parameters to field names.", type.getSimpleName(), createConstructorParameterString(constructor.getParameterTypes(), null), ParameterFieldMappings.class.getSimpleName(), ParameterFieldMapping.class.getSimpleName()));
+            notMatchingConstructors.add(String.format("%s(%s) - Constructor has parameters, but they are not all mapped to fields. Please use  @%s constructor annotation to map constructor parameters to field names.", type.getSimpleName(), createConstructorParameterString(constructor.getParameterTypes(), null), ConstructParamFieldMapping.class.getSimpleName()));
             return null;
         }
 
@@ -167,14 +166,92 @@ public class ReflectionUtil {
                 String fieldName = constructorParamIndexFieldName.get(parameterIndex);
                 constructorParameters[parameterIndex] = normalizedObject.getProperty(fieldName);
             }
-            T object = typedConstructor.newInstance(constructorParameters);
-            for (ConstructionSetter propertySetter : propertySetters) {
-                Object value = normalizedObject.getValue(propertySetter.fieldName);
-                propertySetter.setterMethod.invoke(object, value);
+            try {
+                T object = typedConstructor.newInstance(constructorParameters);
+                for (ConstructionSetter propertySetter : propertySetters) {
+                    NormalizedProperty<Object> normalizedValue = normalizedObject.getProperty(propertySetter.fieldName);
+                    PropertyDescription<T, ?> propertyDescription = propertyDescriptionMap.get(propertySetter.fieldName);
+                    @SuppressWarnings("unchecked") Object value = getValue(normalizedValue, (PropertyDescription<T, Object>) propertyDescription, classDescriptionCache);
+                    propertySetter.setterMethod.invoke(object, value);
+                }
+                return object;
+            } catch (InstantiationException e) {
+                throw new IllegalStateException("Failed to instantiate object.", e);
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("Failed to instantiate object. Constructor must be public.", e);
+            } catch (InvocationTargetException e) {
+                throw new IllegalStateException("Failed to instantiate object. Wrong invocation target.", e);
             }
-            return object;
         };
     }
+
+    private static String createSetterFoundString(List<ConstructionSetter> propertySetters) {
+        if (propertySetters.isEmpty()) {
+            return "";
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(", Setter methods found for fields ");
+        for (ConstructionSetter setter : propertySetters) {
+            stringBuilder.append("'").append(setter.fieldName).append(" -> ").append(setter.setterMethod.getName()).append("', ");
+        }
+        return stringBuilder.substring(0, stringBuilder.length() - 2);
+    }
+
+    private static String createSetterString(Set<String> unmatchedFields) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String field : unmatchedFields) {
+            stringBuilder.append("'").append(field).append("', ");
+        }
+        return stringBuilder.substring(0, stringBuilder.length() - 2);
+    }
+
+    private static <T, V> Object getValue(NormalizedProperty<V> normalizedValue, PropertyDescription<T, V> propertyDescription, ClassDescriptionCache classDescriptionCache) {
+        return propertyDescription.createProperty(normalizedValue);
+    }
+
+    private static <T> List<ConstructionSetter> getConstructionSettersAndUpdateUnassignedParameters(Class<T> type, Set<String> unassignedParameters) {
+        final List<ConstructionSetter> propertySetters = new ArrayList<>();
+        List<TypeAndFields> parentTypeFields = createInheritedTypesAndFields(type);
+        for (TypeAndFields typeAndFields : parentTypeFields) {
+            for (Field nonConstProperty : typeAndFields.fields) {
+                if (!unassignedParameters.contains(nonConstProperty.getName()) || isIgnoredField(nonConstProperty) || Modifier.isFinal(nonConstProperty.getModifiers())) {
+                    continue;
+                }
+                Method setterMethod = findSetterMethod(typeAndFields.type, nonConstProperty);
+                if (setterMethod == null) {
+                    throw new IllegalArgumentException(String.format("Could not find setter method for '%s.%s:%s'", typeAndFields.type.getSimpleName(), nonConstProperty.getName(), nonConstProperty.getType().getSimpleName()));
+                }
+                propertySetters.add(new ConstructionSetter(nonConstProperty.getName(), setterMethod));
+                unassignedParameters.remove(nonConstProperty.getName());
+            }
+        }
+        return propertySetters;
+    }
+
+    public static boolean isIgnoredField(Field nonConstProperty) {
+        return nonConstProperty.getAnnotation(IgnoredProperty.class) != null;
+    }
+
+    private static <T> List<TypeAndFields> createInheritedTypesAndFields(Class<T> type) {
+        List<TypeAndFields> typeAndFields = new ArrayList<>();
+        typeAndFields.add(new TypeAndFields(type, Arrays.asList(type.getDeclaredFields())));
+        Class<?> superClass = type.getSuperclass();
+        while (superClass != null) {
+            typeAndFields.add(new TypeAndFields(superClass, Arrays.asList(superClass.getDeclaredFields())));
+            superClass = superClass.getSuperclass();
+        }
+        return typeAndFields;
+    }
+
+    private static Map<Integer, String> createConstructorParameterIndexAndUpdateUnassignedParameters(Map<String, ConstructorParameter> fieldNameConstructorParameters, Set<String> unassignedParameters) {
+        final Map<Integer, String> constructorParameterIndexFieldName = new HashMap<>();
+        for (ConstructorParameter constParam : fieldNameConstructorParameters.values()) {
+            constructorParameterIndexFieldName.put(constParam.parameterIndex, constParam.fieldName);
+            unassignedParameters.remove(constParam.fieldName);
+        }
+        return constructorParameterIndexFieldName;
+    }
+
 
     private static <T> Function<NormalizedObject<T>, T> createEmptyConstructorFunction(Constructor<T> typedConstructor) {
         return normalizedObject -> {
@@ -194,17 +271,30 @@ public class ReflectionUtil {
         if (parameterFieldMappings == null) {
             return Collections.emptyList();
         }
-        if (parameterFieldMappings.fieldNames().length != parameterTypes.length) {
-            throw new IllegalArgumentException(String.format("@ConstructorParameterFields annotation for type '%s' must have the same number of fieldNames as there is constructor parameter arguments. Was '%d' (%s), expected '%d'.", type.getSimpleName(), parameterFieldMappings.fieldNames().length, Arrays.asList(parameterFieldMappings.fieldNames()), parameterTypes.length));
+        if (parameterFieldMappings.paramFieldNames().length != parameterTypes.length) {
+            throw new IllegalArgumentException(String.format("@ConstructorParameterFields annotation for type '%s' must have the same number of fieldNames as there is constructor parameter arguments. Was '%d' (%s), expected '%d'.", type.getSimpleName(), parameterFieldMappings.paramFieldNames().length, Arrays.asList(parameterFieldMappings.paramFieldNames()), parameterTypes.length));
         }
         List<ConstructorParameter> mappedConstructorParameters = new ArrayList<>();
-        for (int idx = 0; idx < parameterFieldMappings.fieldNames().length; idx++) {
+        for (int idx = 0; idx < parameterFieldMappings.paramFieldNames().length; idx++) {
             Class<?> parameterType = parameterTypes[idx];
-            String fieldName = parameterFieldMappings.fieldNames()[idx];
-            assertConstructorParameterFieldMappingValid(type, propertyMap, ParameterFieldMappings.class, fieldName, parameterType);
+            String fieldName = parameterFieldMappings.paramFieldNames()[idx];
+            assertConstructorParameterFieldMappingValid(type, propertyMap, ConstructParamFieldMapping.class, fieldName, parameterType);
             mappedConstructorParameters.add(new ConstructorParameter(idx, fieldName));
         }
         return mappedConstructorParameters;
+    }
+
+    private static <T> void assertConstructorParameterFieldMappingValid(Class<T> type, Map<String, PropertyDescription<T, ?>> propertyMap, Class<?> annotationClass, String fieldName, Class<?> parameterType) {
+        PropertyDescription<T, ?> propertyMatch = propertyMap.get(fieldName);
+        if (propertyMatch == null) {
+            throw new IllegalArgumentException(String.format("Constructor parameter @%s annotation for class '%s' references field '%s', but it does not exist or is not annotated.", annotationClass.getSimpleName(), type.getSimpleName(), fieldName));
+        }
+        if (!propertyMatch.getType().isAssignableFrom(parameterType)) {
+            throw new IllegalArgumentException(String.format("Constructor parameter @%s annotation for class '%s' references field '%s', but the field '%s' type '%s' is not assignable from the constructor parameter type '%s'.", annotationClass.getSimpleName(), type.getSimpleName(), fieldName, propertyMatch.getPropertyName(), propertyMatch.getType().getSimpleName(), parameterType.getSimpleName()));
+        }
+        if((parameterType.isPrimitive() && !propertyMatch.getType().isPrimitive()) || (!parameterType.isPrimitive() && propertyMatch.getType().isPrimitive())) {
+            throw new IllegalArgumentException(String.format("Constructor parameter @%s annotation for class '%s' references field '%s', but the field '%s' type '%s' and parameter type '%s' is not both primitive or object type.", annotationClass.getSimpleName(), type.getSimpleName(), fieldName, propertyMatch.getPropertyName(), propertyMatch.getType().getSimpleName(), parameterType.getSimpleName()));
+        }
     }
 
     private static Map<String, ConstructorParameter> createFieldNameToConstructorParameterMap(List<ConstructorParameter> mappedParametersConAnno) {
@@ -237,51 +327,16 @@ public class ReflectionUtil {
     private static boolean isNoArgConstructor(Constructor<?> constructor) {
         return constructor.getParameterTypes().length == 0;
     }
-    private static <T> Function<NormalizedObject<T>, T> createConstructorFunctionFromMatch(ReflectionUtil.ConstructorMatch<T> constructorMatch, List<PropertyDescription<T, ?>> propertyDescriptions, Class<T> type, ClassDescriptionCache classDescriptionCache) {
-        Map<String, PropertyDescription<T, ?>> propertyDescriptionMap = new HashMap<>();
-        for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
-            propertyDescriptionMap.put(propertyDescription.getPropertyName(), propertyDescription);
+
+    private static class TypeAndFields {
+        private final Class<?> type;
+        private final List<Field> fields;
+
+        private TypeAndFields(Class<?> type, List<Field> fields) {
+            this.type = type;
+            this.fields = fields;
         }
-        return normalizedObject -> {
-            Object[] constructorArgs = getConstructorArgs(normalizedObject, constructorMatch, classDescriptionCache);
-            try {
-                T object = constructorMatch.getConstructor().newInstance(constructorArgs);
-                for (PropertyDescription<T, ?> propertyDescription : constructorMatch.getSetterProperties().values()) {
-                    NormalizedProperty<?> normalizedPropertyValue = normalizedObject.getProperty(propertyDescription.getPropertyName());
-                    //noinspection unchecked,CastCanBeRemovedNarrowingVariableType
-                    setProperty(object, (NormalizedProperty<Object>) normalizedPropertyValue, (PropertyDescription<T, Object>) propertyDescription, classDescriptionCache);
-                }
-                return object;
-            } catch (InstantiationException e) {
-                throw new IllegalStateException("Failed to instantiate object.", e);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("Failed to instantiate object. Constructor must be public.", e);
-            } catch (InvocationTargetException e) {
-                throw new IllegalStateException("Failed to instantiate object. Wrong invocation target.", e);
-            }
-        };
     }
-
-    private static <T, V> Object[] getConstructorArgs(NormalizedObject<T> normalizedObject, ReflectionUtil.ConstructorMatch<T> constructorMatch, ClassDescriptionCache classDescriptionCache) {
-        Object[] constructorParameters = new Object[constructorMatch.getConstructorParameters().size()];
-        for (int i = 0; i < constructorMatch.getConstructorParameters().size(); i++) {
-            @SuppressWarnings("unchecked") PropertyDescription<T, V> propertyDescription = (PropertyDescription<T, V>) constructorMatch.getConstructorParameters().get(i);
-            NormalizedProperty<V> normalizedProperty = normalizedObject.getProperty(propertyDescription.getPropertyName());
-            V property = getProperty(normalizedProperty, propertyDescription, classDescriptionCache);
-            constructorParameters[i] = property;
-        }
-        return constructorParameters;
-    }
-
-    private static <T, V> V getProperty(NormalizedProperty<V> normalizedPropertyValue, PropertyDescription<T, V> propertyDescription, ClassDescriptionCache classDescriptionCache) {
-        return propertyDescription.createProperty(normalizedPropertyValue, classDescriptionCache).orElse(null);
-    }
-
-    private static <T, V> void setProperty(T object, NormalizedProperty<V> normalizedPropertyValue, PropertyDescription<T, V> propertyDescription, ClassDescriptionCache classDescriptionCache) {
-        V value = getProperty(normalizedPropertyValue, propertyDescription, classDescriptionCache);
-        propertyDescription.getSetterFunction().orElseThrow(() -> new IllegalStateException("No setter function for property " + normalizedPropertyValue.getPropertyName())).accept(object, value);
-    }
-
 
     public static class ConstructorMatch<T> {
         private final Constructor<T> constructor;

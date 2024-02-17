@@ -13,8 +13,9 @@ public class SimplePropertyDescription<C, T> extends PropertyDescriptionBase<C, 
         super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction);
     }
 
-    public SimplePropertyDescription(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction) {
-        super(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction, setterFunction);
+    @SuppressWarnings("unchecked")
+    public SimplePropertyDescription(String propertyName, String description, T defaultValue, Class<C> parentType, Class<?> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction) {
+        super(propertyName, description, defaultValue, parentType, (Class<T>) type, validator, isOptional, introducedInVersion, getterFunction, setterFunction);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.bitcrunzh.generic.config.description.java.property;
 
-import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.PropertyDescription;
 import com.bitcrunzh.generic.config.description.java.Version;
 import com.bitcrunzh.generic.config.validation.*;
@@ -41,6 +40,15 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     }
 
     @Override
+    public String getPropertyResourceKey(PropertyResourceKeyType keyType) {
+        return String.format("%s.%s.%s", type.getPackage().getName(), stripSpacesAndLineFeeds(propertyName), keyType.name());
+    }
+
+    private String stripSpacesAndLineFeeds(String propertyName) {
+        return propertyName.replaceAll("(\\s|\\r|\\n)", "");
+    }
+
+    @Override
     public String getPropertyName() {
         return propertyName;
     }
@@ -77,19 +85,19 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     }
 
     @Override
-    public NormalizedProperty<T> createPropertyValueFromParent(C parent, ClassDescriptionCache classDescriptionCache) {
+    public NormalizedProperty<T> createNormalizedPropertyFromParent(C parent) {
         T property = getterFunction.apply(parent);
-        return createPropertyValue(property, classDescriptionCache);
+        return createNormalizedProperty(property);
     }
 
     @Override
-    public ValidationResult<T> validateValueFromParent(C parentObject) {
+    public ValidationResult<T> validatePropertyFromParent(C parentObject) {
         T value = getterFunction.apply(parentObject);
-        return validateValue(value);
+        return validateProperty(value);
     }
 
     @Override
-    public ValidationResult<T> validateValue(T property) {
+    public ValidationResult<T> validateProperty(T property) {
         if (property != null) {
             if (!type.isInstance(property)) {
                 return new ValidationResult<>(property, (new PropertyTypeProblem(propertyName, type, property.getClass())));
@@ -125,8 +133,8 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     }
 
     @Override
-    public NormalizedProperty<T> createPropertyValue(T property, ClassDescriptionCache classDescriptionCache) {
-        ValidationResult<T> validationResult = validateValue(property);
+    public NormalizedProperty<T> createNormalizedProperty(T property) {
+        ValidationResult<T> validationResult = validateProperty(property);
         if (validationResult.hasErrors()) {
             throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
         }
@@ -138,12 +146,12 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     }
 
     @Override
-    public Optional<T> createProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+    public Optional<T> createProperty(NormalizedProperty<T> normalizedProperty) {
         T value = null;
         if (normalizedProperty.getValue().isPresent()) {
             value = createPropertyNoValidation(normalizedProperty.getValue().get());
         }
-        ValidationResult<T> validationResult = validateValue(value);
+        ValidationResult<T> validationResult = validateProperty(value);
         if (!validationResult.isValid()) {
             throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
         }
@@ -151,12 +159,12 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     }
 
     @Override
-    public ValidationResult<T> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty, ClassDescriptionCache classDescriptionCache) {
+    public ValidationResult<T> validateNormalizedProperty(NormalizedProperty<T> normalizedProperty) {
         T value = null;
         if (!normalizedProperty.getValue().isPresent()) {
             value = createPropertyNoValidation(normalizedProperty.getValue().get());
         }
-        return validateValue(value);
+        return validateProperty(value);
     }
 
     protected abstract T createPropertyNoValidation(Value normalizedValue);
