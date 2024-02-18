@@ -15,12 +15,12 @@ import java.util.function.Function;
 public class ListPropertyDescription<C, V> extends PropertyDescriptionBase<C, List<V>> {
     private final CollectionValueDescription<V> collectionValueDescription;
     private final ClassDescriptionCache classDescriptionCache;
-    public ListPropertyDescription(String propertyName, String description, List<V> defaultValue, Class<C> parentType, PropertyValidator<List<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, List<V>> getterFunction, ClassDescriptionCache classDescriptionCache) {
-        this(propertyName, description, defaultValue, parentType, validator, collectionValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
+    public ListPropertyDescription(String propertyName, String fieldName, String description, List<V> defaultValue, Class<C> parentType, PropertyValidator<List<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, List<V>> getterFunction, ClassDescriptionCache classDescriptionCache) {
+        this(propertyName, fieldName, description, defaultValue, parentType, validator, collectionValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
     }
 
-    public ListPropertyDescription(String propertyName, String description, List<V> defaultValue, Class<C> parentType, PropertyValidator<List<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, List<V>> getterFunction, BiConsumer<C, List<V>> setterFunction, ClassDescriptionCache classDescriptionCache) {
-        super(propertyName, description, defaultValue, parentType, createListClass(), propertyValue -> {
+    public ListPropertyDescription(String propertyName, String fieldName, String description, List<V> defaultValue, Class<C> parentType, PropertyValidator<List<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, List<V>> getterFunction, BiConsumer<C, List<V>> setterFunction, ClassDescriptionCache classDescriptionCache) {
+        super(propertyName, fieldName, description, defaultValue, parentType, createListClass(), propertyValue -> {
             ValidationResult<List<V>> validationResult = validator.validate(propertyValue);
             for (V v : propertyValue) {
                 validationResult.addValidationResult(collectionValueDescription.validateValue(v));

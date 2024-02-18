@@ -17,9 +17,10 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
     private final Set<Class<?>> allTypes;
     private final ClassDescriptionCache classDescriptionCache;
 
-    public ClassPropertyDescription(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, Set<Class<? extends T>> subTypes, ClassDescriptionCache classDescriptionCache) {
+    public ClassPropertyDescription(String propertyName, String fieldName, String description, T defaultValue, Class<C> parentType, Class<T> type, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, Set<Class<? extends T>> subTypes, ClassDescriptionCache classDescriptionCache) {
         this(
                 propertyName,
+                fieldName,
                 description,
                 defaultValue,
                 parentType,
@@ -32,9 +33,10 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
                 classDescriptionCache);
     }
 
-    public ClassPropertyDescription(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction, Set<Class<? extends T>> subTypes, ClassDescriptionCache classDescriptionCache) {
+    public ClassPropertyDescription(String propertyName, String fieldName, String description, T defaultValue, Class<C> parentType, Class<T> type, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction, Set<Class<? extends T>> subTypes, ClassDescriptionCache classDescriptionCache) {
         super(
                 propertyName,
+                fieldName,
                 description,
                 defaultValue,
                 parentType,

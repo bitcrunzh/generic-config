@@ -12,6 +12,7 @@ import java.util.function.Function;
 
 public abstract class PropertyDescriptionBase<C, T> implements PropertyDescription<C, T> {
     private final String propertyName;
+    private final String fieldName;
     private final String description;
     private final T defaultValue;
     private final Class<C> parentType;
@@ -22,12 +23,13 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     private final Function<C, T> getterFunction;
     private final BiConsumer<C, T> setterFunction;
 
-    public PropertyDescriptionBase(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction) {
-        this(propertyName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction, null);
+    public PropertyDescriptionBase(String propertyName, String fieldName, String description, T defaultValue, Class<C> parentType, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction) {
+        this(propertyName, fieldName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction, null);
     }
 
-    public PropertyDescriptionBase(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction) {
+    public PropertyDescriptionBase(String propertyName, String fieldName, String description, T defaultValue, Class<C> parentType, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction) {
         this.propertyName = propertyName;
+        this.fieldName = fieldName;
         this.description = description;
         this.defaultValue = defaultValue;
         this.parentType = parentType;
@@ -41,7 +43,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
 
     @Override
     public String getPropertyResourceKey(PropertyResourceKeyType keyType) {
-        return String.format("%s.%s.%s", type.getPackage().getName(), stripSpacesAndLineFeeds(propertyName), keyType.name());
+        return String.format("%s.%s.%s", type.getPackage().getName(), fieldName, keyType.name());
     }
 
     private String stripSpacesAndLineFeeds(String propertyName) {
@@ -51,6 +53,11 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     @Override
     public String getName() {
         return propertyName;
+    }
+
+    @Override
+    public String getFieldName() {
+        return fieldName;
     }
 
     @Override

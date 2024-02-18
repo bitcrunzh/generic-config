@@ -1,8 +1,10 @@
 package com.bitcrunzh.generic.config.reflection;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
+import com.bitcrunzh.generic.config.description.java.PropertyDescription;
 import com.bitcrunzh.generic.config.description.java.Version;
 import com.bitcrunzh.generic.config.description.java.property.ClassPropertyDescription;
+import com.bitcrunzh.generic.config.description.java.property.ListPropertyDescription;
 import com.bitcrunzh.generic.config.description.java.property.SimplePropertyDescription;
 import com.bitcrunzh.generic.config.reflection.annotation.property.initializer.ClassDefaultValueInitializer;
 import com.bitcrunzh.generic.config.validation.PropertyValidator;
@@ -25,6 +27,7 @@ public class PropertyDescriptionBuilder<C, T> {
     private String fieldName;
     private String description;
     private T defaultValue;
+    private List<T> listDefaultValue = null;
     private PropertyValidator<T> validator;
     private boolean isOptional;
     private Version version;
@@ -97,7 +100,7 @@ public class PropertyDescriptionBuilder<C, T> {
     }
 
     public SimplePropertyDescription<C, T> buildSimpleProperty() {
-        return new SimplePropertyDescription<>(name, description, defaultValue, parentType, propertyType, validator, isOptional, version, getterFunction, setterFunction);
+        return new SimplePropertyDescription<>(name, fieldName, description, defaultValue, parentType, propertyType, validator, isOptional, version, getterFunction, setterFunction);
     }
 
     public ClassPropertyDescription<C, T> buildClassProperty() {
@@ -105,7 +108,11 @@ public class PropertyDescriptionBuilder<C, T> {
         if (subTypes != null) {
             subTypesNotNull = subTypes;
         }
-        return new ClassPropertyDescription<>(name, description, defaultValue, parentType, propertyType, isOptional, version, getterFunction, setterFunction, subTypesNotNull, classDescriptionCache);
+        return new ClassPropertyDescription<>(name, fieldName, description, defaultValue, parentType, propertyType, isOptional, version, getterFunction, setterFunction, subTypesNotNull, classDescriptionCache);
+    }
+
+    public ListPropertyDescription<C, T> buildListProperty() {
+        return new ListPropertyDescription<C, T>(name, fieldName, description, listDefaultValue, );
     }
 
     private static <T, V> BiConsumer<T, V> createSetterFunction(Method setterMethod) {

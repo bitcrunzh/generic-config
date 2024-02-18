@@ -15,12 +15,12 @@ import java.util.function.Function;
 public class SetPropertyDescription<C, V> extends PropertyDescriptionBase<C, Set<V>> {
     private final CollectionValueDescription<V> collectionValueDescription;
     private final ClassDescriptionCache classDescriptionCache;
-    public SetPropertyDescription(String propertyName, String description, Set<V> defaultValue, Class<C> parentType, PropertyValidator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, ClassDescriptionCache classDescriptionCache) {
-        this(propertyName, description, defaultValue, parentType, validator, collectionValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
+    public SetPropertyDescription(String propertyName, String fieldName, String description, Set<V> defaultValue, Class<C> parentType, PropertyValidator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, ClassDescriptionCache classDescriptionCache) {
+        this(propertyName, fieldName, description, defaultValue, parentType, validator, collectionValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
     }
 
-    public SetPropertyDescription(String propertyName, String description, Set<V> defaultValue, Class<C> parentType, PropertyValidator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, BiConsumer<C, Set<V>> setterFunction, ClassDescriptionCache classDescriptionCache) {
-        super(propertyName, description, defaultValue, parentType, createSetClass(), propertyValue -> {
+    public SetPropertyDescription(String propertyName, String fieldName, String description, Set<V> defaultValue, Class<C> parentType, PropertyValidator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, BiConsumer<C, Set<V>> setterFunction, ClassDescriptionCache classDescriptionCache) {
+        super(propertyName, fieldName, description, defaultValue, parentType, createSetClass(), propertyValue -> {
             ValidationResult<Set<V>> validationResult = validator.validate(propertyValue);
             for (V v : propertyValue) {
                 validationResult.addValidationResult(collectionValueDescription.validateValue(v));

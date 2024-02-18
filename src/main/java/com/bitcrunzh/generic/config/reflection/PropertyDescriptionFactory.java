@@ -50,8 +50,7 @@ public class PropertyDescriptionFactory {
             return new PropertyDescriptionBuilder<>(parentType, field, classDescriptionCache).buildSimpleProperty();
         }
         if (field.getType().isEnum()) {
-            //TODO implement enum.
-            return null;
+            return createEnumPropertyDescription(parentType, field, classDescriptionCache);
         }
         if (List.class.isAssignableFrom(field.getType())) {
             return createListPropertyDescription(parentType, field, classDescriptionCache);
@@ -88,12 +87,18 @@ public class PropertyDescriptionFactory {
     }
 
     public interface PropertyDescriptionCreateFunction<T, P> {
+
         PropertyDescription<T, P> createPropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache);
 
     }
-
     private static <T> PropertyDescription<T, ?> createListPropertyDescription(Class<T> parentType, Field field, ClassDescriptionCache classDescriptionCache) {
-        return null;
+        CollectionProperty collectionProperty = tryGetAnnotationAndAssertNoOtherPropertyAnnotations(CollectionProperty.class, parentType, field);
+        if(collectionProperty == null) {
+            throw new IllegalArgumentException(String.format("List property '%s.%s:%s' is not annotated with @%s"));
+        }
+        PropertyDescriptionBuilder<T, ?> builder = new PropertyDescriptionBuilder<>(parentType, field, classDescriptionCache);
+
+        return builder.buildListProperty();
         //TODO implement;
     }
 
@@ -107,9 +112,13 @@ public class PropertyDescriptionFactory {
         //TODO implement;
     }
 
+    private static <T> PropertyDescription<T, ?> createEnumPropertyDescription(Class<T> parentType, Field field, ClassDescriptionCache classDescriptionCache) {
+        return null;
+    }
+
     private static <T> PropertyDescription<T, ?> createComplexClassPropertyDescription(Class<T> parentType, Field field, ClassDescriptionCache classDescriptionCache) {
         PropertyDescriptionBuilder<T, ?> builder = new PropertyDescriptionBuilder<>(parentType, field, classDescriptionCache);
-        ClassProperty classProperty = tryGetAnnotationAndAssertNoOtherPropertyAnnotations(ClassProperty.class, field.getType(), field);
+        ClassProperty classProperty = tryGetAnnotationAndAssertNoOtherPropertyAnnotations(ClassProperty.class, parentType, field);
         if (classProperty != null) {
             builder.setNameIfNotEmpty(classProperty.name());
             builder.setDescriptionIfNotEmpty(classProperty.description());
