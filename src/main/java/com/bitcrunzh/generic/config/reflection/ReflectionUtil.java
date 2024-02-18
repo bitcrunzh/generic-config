@@ -101,7 +101,7 @@ public class ReflectionUtil {
         Map<String, PropertyDescription<T, ?>> propertyMap = new HashMap<>();
         List<PropertyDescription<T, ?>> propertyDescriptionsToMatch = new ArrayList<>(propertyDescriptions);
         for (PropertyDescription<T, ?> property : propertyDescriptionsToMatch) {
-            propertyMap.put(property.getPropertyName(), property);
+            propertyMap.put(property.getName(), property);
         }
 
         List<String> notMatchingConstructors = new ArrayList<>();
@@ -130,8 +130,8 @@ public class ReflectionUtil {
         Set<String> unassignedParameters = new HashSet<>();
         Map<String, PropertyDescription<T, ?>> propertyDescriptionMap = new HashMap<>();
         for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
-            unassignedParameters.add(propertyDescription.getPropertyName());
-            propertyDescriptionMap.put(propertyDescription.getPropertyName(), propertyDescription);
+            unassignedParameters.add(propertyDescription.getName());
+            propertyDescriptionMap.put(propertyDescription.getName(), propertyDescription);
         }
 
         if (propertyDescriptions.isEmpty()) {
@@ -290,10 +290,10 @@ public class ReflectionUtil {
             throw new IllegalArgumentException(String.format("Constructor parameter @%s annotation for class '%s' references field '%s', but it does not exist or is not annotated.", annotationClass.getSimpleName(), type.getSimpleName(), fieldName));
         }
         if (!propertyMatch.getType().isAssignableFrom(parameterType)) {
-            throw new IllegalArgumentException(String.format("Constructor parameter @%s annotation for class '%s' references field '%s', but the field '%s' type '%s' is not assignable from the constructor parameter type '%s'.", annotationClass.getSimpleName(), type.getSimpleName(), fieldName, propertyMatch.getPropertyName(), propertyMatch.getType().getSimpleName(), parameterType.getSimpleName()));
+            throw new IllegalArgumentException(String.format("Constructor parameter @%s annotation for class '%s' references field '%s', but the field '%s' type '%s' is not assignable from the constructor parameter type '%s'.", annotationClass.getSimpleName(), type.getSimpleName(), fieldName, propertyMatch.getName(), propertyMatch.getType().getSimpleName(), parameterType.getSimpleName()));
         }
         if((parameterType.isPrimitive() && !propertyMatch.getType().isPrimitive()) || (!parameterType.isPrimitive() && propertyMatch.getType().isPrimitive())) {
-            throw new IllegalArgumentException(String.format("Constructor parameter @%s annotation for class '%s' references field '%s', but the field '%s' type '%s' and parameter type '%s' is not both primitive or object type.", annotationClass.getSimpleName(), type.getSimpleName(), fieldName, propertyMatch.getPropertyName(), propertyMatch.getType().getSimpleName(), parameterType.getSimpleName()));
+            throw new IllegalArgumentException(String.format("Constructor parameter @%s annotation for class '%s' references field '%s', but the field '%s' type '%s' and parameter type '%s' is not both primitive or object type.", annotationClass.getSimpleName(), type.getSimpleName(), fieldName, propertyMatch.getName(), propertyMatch.getType().getSimpleName(), parameterType.getSimpleName()));
         }
     }
 

@@ -23,9 +23,9 @@ public class ClassDescription<T> {
         this.constructorFunction = constructorFunction;
         this.objectValidator = objectValidator;
         for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
-            namePropertyMap.put(propertyDescription.getPropertyName(), propertyDescription);
+            namePropertyMap.put(propertyDescription.getName(), propertyDescription);
             if (!propertyDescription.isOptional()) {
-                mandatoryProperties.add(propertyDescription.getPropertyName());
+                mandatoryProperties.add(propertyDescription.getName());
             }
         }
     }

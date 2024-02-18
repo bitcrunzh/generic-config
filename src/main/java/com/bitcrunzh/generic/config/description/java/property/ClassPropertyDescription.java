@@ -17,23 +17,22 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
     private final Set<Class<?>> allTypes;
     private final ClassDescriptionCache classDescriptionCache;
 
-    public ClassPropertyDescription(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, ClassDescriptionCache classDescriptionCache, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, Set<Class<? extends T>> subTypes, ClassDescriptionCache classDescriptionCache1) {
+    public ClassPropertyDescription(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, Set<Class<? extends T>> subTypes, ClassDescriptionCache classDescriptionCache) {
         this(
                 propertyName,
                 description,
                 defaultValue,
                 parentType,
                 type,
-                classDescriptionCache,
                 isOptional,
                 introducedInVersion,
                 getterFunction,
                 null,
                 subTypes,
-                classDescriptionCache1);
+                classDescriptionCache);
     }
 
-    public ClassPropertyDescription(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, ClassDescriptionCache classDescriptionCache, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction, Set<Class<? extends T>> subTypes, ClassDescriptionCache classDescriptionCache1) {
+    public ClassPropertyDescription(String propertyName, String description, T defaultValue, Class<C> parentType, Class<T> type, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction, Set<Class<? extends T>> subTypes, ClassDescriptionCache classDescriptionCache) {
         super(
                 propertyName,
                 description,
@@ -57,7 +56,7 @@ public class ClassPropertyDescription<C, T> extends PropertyDescriptionBase<C, T
                 getterFunction,
                 setterFunction);
         this.allTypes = new HashSet<>(subTypes);
-        this.classDescriptionCache = classDescriptionCache1;
+        this.classDescriptionCache = classDescriptionCache;
         this.allTypes.add(type);
     }
 

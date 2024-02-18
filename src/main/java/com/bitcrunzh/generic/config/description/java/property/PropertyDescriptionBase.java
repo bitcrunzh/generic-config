@@ -49,7 +49,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     }
 
     @Override
-    public String getPropertyName() {
+    public String getName() {
         return propertyName;
     }
 
@@ -111,7 +111,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
 
     protected <V extends Value> V getValueAsType(Value value, Class<?> expectedType) {
         if (!expectedType.isInstance(value)) {
-            throw new IllegalArgumentException(PropertyDescriptionProblem.createDescription(getParentType(), getType(), getPropertyName(), expectedType, value.getClass()));
+            throw new IllegalArgumentException(PropertyDescriptionProblem.createDescription(getParentType(), getType(), getName(), expectedType, value.getClass()));
         }
         //noinspection unchecked
         return (V) expectedType.cast(value);
@@ -136,10 +136,10 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     public NormalizedProperty<T> createNormalizedProperty(T property) {
         ValidationResult<T> validationResult = validateProperty(property);
         if (validationResult.hasErrors()) {
-            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
+            throw new IllegalArgumentException(String.format("Cannot create PropertyValue as property '%s.%s:%s' is not valid. Reason: '%s'", getParentType().getSimpleName(), getName(), getType().getSimpleName(), validationResult));
         }
         if (property == null) {
-            return new NormalizedProperty<>(getPropertyName(), null);
+            return new NormalizedProperty<>(getName(), null);
         }
         Value normalizedValue = createNormalizedPropertyNoValidation(property);
         return new NormalizedProperty<>(propertyName, normalizedValue);
@@ -153,7 +153,7 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
         }
         ValidationResult<T> validationResult = validateProperty(value);
         if (!validationResult.isValid()) {
-            throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getPropertyName(), getType().getSimpleName(), validationResult));
+            throw new IllegalArgumentException(String.format("Cannot create property '%s.%s:%s' from NormalizedProperty, as it is not valid. Reason: '%s'", getParentType().getSimpleName(), getName(), getType().getSimpleName(), validationResult));
         }
         return Optional.of(validationResult.getValidatedObject());
     }

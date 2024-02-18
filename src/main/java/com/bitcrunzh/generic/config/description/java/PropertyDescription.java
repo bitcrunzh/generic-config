@@ -17,14 +17,19 @@ public interface PropertyDescription<C, T> {
     String getPropertyResourceKey(PropertyResourceKeyType keyType);
 
     /**
-     * @return the non-localized property name.
+     * @return the non-localized human-readable property name.
      */
-    String getPropertyName();
+    String getName();
 
     /**
      * @return the non-localized property description.
      */
     String getDescription();
+
+    /**
+     * @return the class fieldName.
+     */
+    String getFieldName();
 
     /**
      * @return the default value if any.
