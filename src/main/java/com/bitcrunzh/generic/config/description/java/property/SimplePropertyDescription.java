@@ -1,7 +1,6 @@
 package com.bitcrunzh.generic.config.description.java.property;
 
 import com.bitcrunzh.generic.config.description.java.Version;
-import com.bitcrunzh.generic.config.validation.PropertyValidator;
 import com.bitcrunzh.generic.config.value.java.SimpleValue;
 import com.bitcrunzh.generic.config.value.java.Value;
 

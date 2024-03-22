@@ -1,9 +1,8 @@
 package com.bitcrunzh.generic.config.reflection;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
-import com.bitcrunzh.generic.config.description.java.Version;
-import com.bitcrunzh.generic.config.description.java.property.ClassPropertyDescription;
-import com.bitcrunzh.generic.config.description.java.property.SimplePropertyDescription;
+import com.bitcrunzh.generic.config.description.java.property.collection.CollectionValueDescription;
+import com.bitcrunzh.generic.config.description.java.property.ListPropertyDescription;
 import com.bitcrunzh.generic.config.reflection.annotation.property.initializer.ClassDefaultValueInitializer;
 import com.bitcrunzh.generic.config.validation.ValidationResult;
 
@@ -14,79 +13,42 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class PropertyDescriptionBuilder<C, T> {
-    protected final Class<C> parentType;
-    protected final Class<T> propertyType;
-    protected final Function<C, T> getterFunction;
-    protected final BiConsumer<C, T> setterFunction;
-    protected final ClassDescriptionCache classDescriptionCache;
-    protected String name;
-    protected String fieldName;
-    protected String description;
-    protected T defaultValue;
-    protected PropertyValidator<T> validator;
-    protected boolean isOptional;
-    protected Version version;
-    protected Set<Class<? extends T>> subTypes = Collections.emptySet();;
+public class ListPropertyDescriptionBuilder<C, T> extends PropertyDescriptionBuilder<C, T> {
+    private final CollectionValueDescription<T> collectionValueDescription;
+    private final PropertyValidator<List<T>> validator;
+    private List<T> collectionDefaultValue = null;
+    private Class<T> topType = null;
 
-    public PropertyDescriptionBuilder(Class<C> parentType, Field field, ClassDescriptionCache classDescriptionCache) {
-        this(parentType, field, classDescriptionCache, null);
-    }
-
-    public PropertyDescriptionBuilder(Class<C> parentType, Field field, ClassDescriptionCache classDescriptionCache, T defaultValue) {
-        this.parentType = parentType;
-        //noinspection unchecked
-        this.propertyType = (Class<T>) field.getType();
-        name = field.getName();
-        fieldName = field.getName();
-        description = field.getName();
-        this.classDescriptionCache = classDescriptionCache;
-        this.defaultValue = field.getType().isPrimitive() ? defaultValue : null;
+    public ListPropertyDescriptionBuilder(Class<C> parentType, Field field, ClassDescriptionCache classDescriptionCache) {
+        super(parentType, field, classDescriptionCache);
         validator = propertyValue -> ValidationResult.empty();
-        version = Version.DEFAULT;
-        isOptional = true;
-        Method getterMethod = ReflectionUtil.findGetterMethod(propertyType, field);
-        Method setterMethod = ReflectionUtil.findSetterMethod(propertyType, field);
-        getterFunction = createGetterFunction(getterMethod);
-        setterFunction = createSetterFunction(setterMethod);
+        CollectionValueDescription<T> collectionValueDescription = CollectionValueDescriptionFactory.create(parentType, fieldName, topType, subTypes);
     }
 
-    public void setNameIfNotEmpty(String name) {
-        if (name.isEmpty()) {
-            //Ignore empty strings which is the annotation default value.
-            return;
-        }
-        this.name = name;
+    public void setCollectionDefaultValue(List<T> collectionDefaultValue) {
+        this.collectionDefaultValue = collectionDefaultValue;
     }
 
-    public void setDescriptionIfNotEmpty(String description) {
-        if (description.isEmpty()) {
-            //Ignore empty strings which is the annotation default value.
-            return;
-        }
-        this.description = description;
-    }
-
-    public void setDefaultValue(T defaultValue) {
-        this.defaultValue = defaultValue;
-    }
-
-    public void setValidator(PropertyValidator<T> validator) {
+    public void setCollectionValidator(PropertyValidator<List<T>> validator) {
         this.validator = validator;
     }
 
-    public void setOptional(boolean optional) {
-        isOptional = optional;
-    }
-
-    public void setVersion(String version) {
-        this.version = Version.of(version);
+    public void setTopType(Class<T> topType) {
+        this.topType = topType;
+        if(subTypes.isEmpty()) {
+            return;
+        }
+        for (Class<?> subType : subTypes) {
+            if (topType != null && !topType.isAssignableFrom(subType)) {
+                throw new IllegalArgumentException(String.format("Property '%s.%s:%s' has subtype '%s' annotated as part of its sub types, but is not a polymorphic subtype of the property type.", parentType.getSimpleName(), fieldName, propertyType, subType.getSimpleName()));
+            }
+        }
     }
 
     public void setSubTypes(Class<?>[] subTypesToSet) {
         HashSet<Class<? extends T>> newSubTypes = new HashSet<>();
         for (Class<?> subType : subTypesToSet) {
-            if (!propertyType.isAssignableFrom(subType)) {
+            if (topType != null && !topType.isAssignableFrom(subType)) {
                 throw new IllegalArgumentException(String.format("Property '%s.%s:%s' has subtype '%s' annotated as part of its sub types, but is not a polymorphic subtype of the property type.", parentType.getSimpleName(), fieldName, propertyType, subType.getSimpleName()));
             }
             //noinspection unchecked
@@ -95,12 +57,9 @@ public class PropertyDescriptionBuilder<C, T> {
         this.subTypes = newSubTypes;
     }
 
-    public SimplePropertyDescription<C, T> buildSimpleProperty() {
-        return new SimplePropertyDescription<>(name, fieldName, description, defaultValue, parentType, propertyType, validator, isOptional, version, getterFunction, setterFunction);
-    }
+    public ListPropertyDescription<C, T> buildListProperty() {
 
-    public ClassPropertyDescription<C, T> buildClassProperty() {
-        return new ClassPropertyDescription<>(name, fieldName, description, defaultValue, parentType, propertyType, isOptional, version, getterFunction, setterFunction, subTypesNotNull, classDescriptionCache);
+        return new ListPropertyDescription<C, T>(name, fieldName, description, collectionDefaultValue, parentType, validator, , isOptional, version, getterFunction, setterFunction);
     }
 
     private static <T, V> BiConsumer<T, V> createSetterFunction(Method setterMethod) {

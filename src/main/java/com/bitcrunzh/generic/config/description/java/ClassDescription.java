@@ -14,14 +14,14 @@ public class ClassDescription<T> {
     private final Version modelVersion;
     private final List<PropertyDescription<T, ?>> propertyDescriptions;
     private final Function<NormalizedObject<T>, T> constructorFunction;
-    private final ObjectValidator<T> objectValidator;
+    private final Validator<T> validator;
 
-    public ClassDescription(Class<T> type, Version modelVersion, List<PropertyDescription<T, ?>> propertyDescriptions, Function<NormalizedObject<T>, T> constructorFunction, ObjectValidator<T> objectValidator) {
+    public ClassDescription(Class<T> type, Version modelVersion, List<PropertyDescription<T, ?>> propertyDescriptions, Function<NormalizedObject<T>, T> constructorFunction, Validator<T> validator) {
         this.type = type;
         this.modelVersion = modelVersion;
         this.propertyDescriptions = propertyDescriptions;
         this.constructorFunction = constructorFunction;
-        this.objectValidator = objectValidator;
+        this.validator = validator;
         for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
             namePropertyMap.put(propertyDescription.getName(), propertyDescription);
             if (!propertyDescription.isOptional()) {
@@ -69,7 +69,7 @@ public class ClassDescription<T> {
     }
 
     public ValidationResult<T> validate(T object) {
-        ValidationResult<T> validationResult = objectValidator.validate(object);
+        ValidationResult<T> validationResult = validator.validate(object);
         for (PropertyDescription<T, ?> propertyDescription : propertyDescriptions) {
             validationResult.addValidationResult(propertyDescription.validatePropertyFromParent(object));
         }
@@ -90,7 +90,7 @@ public class ClassDescription<T> {
             validationProblems.addValidationProblem(new ObjectValidationProblem(ProblemSeverity.ERROR, String.format("ObjectValue for '%s' is missing the following mandatory PropertyValues '%s'", type.getSimpleName(), mandatoryPropertiesToFind)));
         }
         T object = constructorFunction.apply(normalizedObject);
-        ValidationResult<T> validationResult = objectValidator.validate(object);
+        ValidationResult<T> validationResult = validator.validate(object);
         validationResult.addValidationResult(validationProblems);
         return validationResult;
     }

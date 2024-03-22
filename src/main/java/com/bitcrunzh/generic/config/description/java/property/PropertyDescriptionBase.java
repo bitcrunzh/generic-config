@@ -17,17 +17,17 @@ public abstract class PropertyDescriptionBase<C, T> implements PropertyDescripti
     private final T defaultValue;
     private final Class<C> parentType;
     private final Class<T> type;
-    private final PropertyValidator<T> validator;
+    private final Validator<T> validator;
     private final boolean isOptional;
     private final Version introducedInVersion;
     private final Function<C, T> getterFunction;
     private final BiConsumer<C, T> setterFunction;
 
-    public PropertyDescriptionBase(String propertyName, String fieldName, String description, T defaultValue, Class<C> parentType, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction) {
+    public PropertyDescriptionBase(String propertyName, String fieldName, String description, T defaultValue, Class<C> parentType, Class<T> type, Validator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction) {
         this(propertyName, fieldName, description, defaultValue, parentType, type, validator, isOptional, introducedInVersion, getterFunction, null);
     }
 
-    public PropertyDescriptionBase(String propertyName, String fieldName, String description, T defaultValue, Class<C> parentType, Class<T> type, PropertyValidator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction) {
+    public PropertyDescriptionBase(String propertyName, String fieldName, String description, T defaultValue, Class<C> parentType, Class<T> type, Validator<T> validator, boolean isOptional, Version introducedInVersion, Function<C, T> getterFunction, BiConsumer<C, T> setterFunction) {
         this.propertyName = propertyName;
         this.fieldName = fieldName;
         this.description = description;

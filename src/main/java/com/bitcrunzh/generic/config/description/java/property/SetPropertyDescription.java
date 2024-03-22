@@ -2,8 +2,9 @@ package com.bitcrunzh.generic.config.description.java.property;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.Version;
-import com.bitcrunzh.generic.config.validation.PropertyValidator;
+import com.bitcrunzh.generic.config.description.java.property.collection.CollectionValueDescription;
 import com.bitcrunzh.generic.config.validation.ValidationResult;
+import com.bitcrunzh.generic.config.validation.Validator;
 import com.bitcrunzh.generic.config.value.java.SetValue;
 import com.bitcrunzh.generic.config.value.java.Value;
 
@@ -15,11 +16,11 @@ import java.util.function.Function;
 public class SetPropertyDescription<C, V> extends PropertyDescriptionBase<C, Set<V>> {
     private final CollectionValueDescription<V> collectionValueDescription;
     private final ClassDescriptionCache classDescriptionCache;
-    public SetPropertyDescription(String propertyName, String fieldName, String description, Set<V> defaultValue, Class<C> parentType, PropertyValidator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, ClassDescriptionCache classDescriptionCache) {
+    public SetPropertyDescription(String propertyName, String fieldName, String description, Set<V> defaultValue, Class<C> parentType, Validator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, ClassDescriptionCache classDescriptionCache) {
         this(propertyName, fieldName, description, defaultValue, parentType, validator, collectionValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
     }
 
-    public SetPropertyDescription(String propertyName, String fieldName, String description, Set<V> defaultValue, Class<C> parentType, PropertyValidator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, BiConsumer<C, Set<V>> setterFunction, ClassDescriptionCache classDescriptionCache) {
+    public SetPropertyDescription(String propertyName, String fieldName, String description, Set<V> defaultValue, Class<C> parentType, Validator<Set<V>> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, Set<V>> getterFunction, BiConsumer<C, Set<V>> setterFunction, ClassDescriptionCache classDescriptionCache) {
         super(propertyName, fieldName, description, defaultValue, parentType, createSetClass(), propertyValue -> {
             ValidationResult<Set<V>> validationResult = validator.validate(propertyValue);
             for (V v : propertyValue) {

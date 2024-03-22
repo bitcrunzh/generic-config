@@ -2,8 +2,9 @@ package com.bitcrunzh.generic.config.description.java.property;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.Version;
-import com.bitcrunzh.generic.config.validation.PropertyValidator;
+import com.bitcrunzh.generic.config.description.java.property.collection.CollectionValueDescription;
 import com.bitcrunzh.generic.config.validation.ValidationResult;
+import com.bitcrunzh.generic.config.validation.Validator;
 import com.bitcrunzh.generic.config.value.java.*;
 
 import java.lang.reflect.Array;
@@ -14,12 +15,12 @@ public class ArrayPropertyDescription<C, V> extends PropertyDescriptionBase<C, V
     private final CollectionValueDescription<V> collectionValueDescription;
     private final ClassDescriptionCache classDescriptionCache;
 
-    public ArrayPropertyDescription(String propertyName, String description, V[] defaultValue, Class<C> parentType, PropertyValidator<V[]> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, V[]> getterFunction, ClassDescriptionCache classDescriptionCache) {
-        this(propertyName, description, defaultValue, parentType, validator, collectionValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
+    public ArrayPropertyDescription(String propertyName, String fieldName, String description, V[] defaultValue, Class<C> parentType, Validator<V[]> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, V[]> getterFunction, ClassDescriptionCache classDescriptionCache) {
+        this(propertyName, fieldName, description, defaultValue, parentType, validator, collectionValueDescription, isOptional, introducedInVersion, getterFunction, null, classDescriptionCache);
     }
 
-    public ArrayPropertyDescription(String propertyName, String description, V[] defaultValue, Class<C> parentType, PropertyValidator<V[]> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, V[]> getterFunction, BiConsumer<C, V[]> setterFunction, ClassDescriptionCache classDescriptionCache) {
-        super(propertyName, description, defaultValue, parentType, createType(collectionValueDescription.getType()), propertyValue -> {
+    public ArrayPropertyDescription(String propertyName, String fieldName, String description, V[] defaultValue, Class<C> parentType, Validator<V[]> validator, CollectionValueDescription<V> collectionValueDescription, boolean isOptional, Version introducedInVersion, Function<C, V[]> getterFunction, BiConsumer<C, V[]> setterFunction, ClassDescriptionCache classDescriptionCache) {
+        super(propertyName, fieldName, description, defaultValue, parentType, createType(collectionValueDescription.getType()), propertyValue -> {
             ValidationResult<V[]> validationResult = validator.validate(propertyValue);
             for (V v : propertyValue) {
                 validationResult.addValidationResult(collectionValueDescription.validateValue(v));

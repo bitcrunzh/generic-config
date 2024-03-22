@@ -13,21 +13,21 @@ public class PropertyDescriptionFactory {
     private static final Map<Class<?>, PropertyDescriptionCreateFunction<?, ?>> typePropertyDescriptionFunction = new HashMap<>();
 
     static {
-        addPropertyDescriptionCreateFunction(boolean.class, PrimitivePropertyDescriptionFactory::createBooleanDescription);
-        addPropertyDescriptionCreateFunction(Boolean.class, PrimitivePropertyDescriptionFactory::createBooleanDescription);
-        addPropertyDescriptionCreateFunction(byte.class, PrimitivePropertyDescriptionFactory::createByteDescription);
-        addPropertyDescriptionCreateFunction(Byte.class, PrimitivePropertyDescriptionFactory::createByteDescription);
-        addPropertyDescriptionCreateFunction(short.class, PrimitivePropertyDescriptionFactory::createShortDescription);
-        addPropertyDescriptionCreateFunction(Short.class, PrimitivePropertyDescriptionFactory::createShortDescription);
-        addPropertyDescriptionCreateFunction(int.class, PrimitivePropertyDescriptionFactory::createIntDescription);
-        addPropertyDescriptionCreateFunction(Integer.class, PrimitivePropertyDescriptionFactory::createIntDescription);
-        addPropertyDescriptionCreateFunction(long.class, PrimitivePropertyDescriptionFactory::createLongDescription);
-        addPropertyDescriptionCreateFunction(Long.class, PrimitivePropertyDescriptionFactory::createLongDescription);
-        addPropertyDescriptionCreateFunction(float.class, PrimitivePropertyDescriptionFactory::createFloatDescription);
-        addPropertyDescriptionCreateFunction(Float.class, PrimitivePropertyDescriptionFactory::createFloatDescription);
-        addPropertyDescriptionCreateFunction(double.class, PrimitivePropertyDescriptionFactory::createDoubleDescription);
-        addPropertyDescriptionCreateFunction(Double.class, PrimitivePropertyDescriptionFactory::createDoubleDescription);
-        addPropertyDescriptionCreateFunction(String.class, PrimitivePropertyDescriptionFactory::createStringDescription);
+        addPropertyDescriptionCreateFunction(boolean.class, PrimitiveDescriptionFactory::createBooleanPropertyDescription);
+        addPropertyDescriptionCreateFunction(Boolean.class, PrimitiveDescriptionFactory::createBooleanPropertyDescription);
+        addPropertyDescriptionCreateFunction(byte.class, PrimitiveDescriptionFactory::createBytePropertyDescription);
+        addPropertyDescriptionCreateFunction(Byte.class, PrimitiveDescriptionFactory::createBytePropertyDescription);
+        addPropertyDescriptionCreateFunction(short.class, PrimitiveDescriptionFactory::createShortPropertyDescription);
+        addPropertyDescriptionCreateFunction(Short.class, PrimitiveDescriptionFactory::createShortPropertyDescription);
+        addPropertyDescriptionCreateFunction(int.class, PrimitiveDescriptionFactory::createIntPropertyDescription);
+        addPropertyDescriptionCreateFunction(Integer.class, PrimitiveDescriptionFactory::createIntPropertyDescription);
+        addPropertyDescriptionCreateFunction(long.class, PrimitiveDescriptionFactory::createLongPropertyDescription);
+        addPropertyDescriptionCreateFunction(Long.class, PrimitiveDescriptionFactory::createLongPropertyDescription);
+        addPropertyDescriptionCreateFunction(float.class, PrimitiveDescriptionFactory::createFloatPropertyDescription);
+        addPropertyDescriptionCreateFunction(Float.class, PrimitiveDescriptionFactory::createFloatPropertyDescription);
+        addPropertyDescriptionCreateFunction(double.class, PrimitiveDescriptionFactory::createDoublePropertyDescription);
+        addPropertyDescriptionCreateFunction(Double.class, PrimitiveDescriptionFactory::createDoublePropertyDescription);
+        addPropertyDescriptionCreateFunction(String.class, PrimitiveDescriptionFactory::createStringPropertyDescription);
     }
 
     private PropertyDescriptionFactory() {
@@ -87,7 +87,6 @@ public class PropertyDescriptionFactory {
     }
 
     public interface PropertyDescriptionCreateFunction<T, P> {
-
         PropertyDescription<T, P> createPropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache);
 
     }

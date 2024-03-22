@@ -5,7 +5,7 @@ import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.PropertyDescription;
 import com.bitcrunzh.generic.config.description.java.Version;
 import com.bitcrunzh.generic.config.reflection.annotation.ConfigurationModel;
-import com.bitcrunzh.generic.config.validation.ObjectValidator;
+import com.bitcrunzh.generic.config.validation.Validator;
 import com.bitcrunzh.generic.config.value.java.NormalizedObject;
 
 import java.lang.reflect.Field;
@@ -24,16 +24,16 @@ public class ClassDescriptionFactory {
         Version modeVersion = getModelVersion(annotation);
         List<PropertyDescription<T, ?>> propertyDescriptions = createPropertyDescriptions(type, classDescriptionCache);
         Function<NormalizedObject<T>, T> constructorFunction = createConstructorFunction(propertyDescriptions, type, classDescriptionCache);
-        ObjectValidator<T> validator = createValidator(type, annotation);
+        Validator<T> validator = createValidator(type, annotation);
         ClassDescription<T> classDescription = new ClassDescription<>(type, modeVersion, propertyDescriptions, constructorFunction, validator);
         classDescriptionCache.addClassDescription(classDescription);
         return classDescription;
     }
 
-    private static <T> ObjectValidator<T> createValidator(Class<T> type, ConfigurationModel annotation) {
+    private static <T> Validator<T> createValidator(Class<T> type, ConfigurationModel annotation) {
         try {
             //noinspection unchecked
-            return (ObjectValidator<T>) annotation.validator().newInstance();
+            return (Validator<T>) annotation.validator().newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalArgumentException(String.format("@ConfigurationModel(validator = %s.class) - validator '%s' cannot be instantiated, reason: '%s'", type.getSimpleName(), type.getSimpleName(), e.getMessage()));
         }

@@ -1,7 +1,7 @@
 package com.bitcrunzh.generic.config.reflection.annotation;
 
-import com.bitcrunzh.generic.config.validation.NoObjectValidation;
-import com.bitcrunzh.generic.config.validation.ObjectValidator;
+import com.bitcrunzh.generic.config.validation.NoValidation;
+import com.bitcrunzh.generic.config.validation.Validator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface ConfigurationModel {
     String version() default "1.0";
-    Class<? extends ObjectValidator> validator() default NoObjectValidation.class;
+    Class<? extends Validator> validator() default NoValidation.class;
 }

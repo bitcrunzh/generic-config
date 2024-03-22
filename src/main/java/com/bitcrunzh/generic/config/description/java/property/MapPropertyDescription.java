@@ -2,7 +2,7 @@ package com.bitcrunzh.generic.config.description.java.property;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.Version;
-import com.bitcrunzh.generic.config.validation.PropertyValidator;
+import com.bitcrunzh.generic.config.description.java.property.collection.CollectionValueDescription;
 import com.bitcrunzh.generic.config.value.java.MapValue;
 import com.bitcrunzh.generic.config.value.java.Value;
 

@@ -2,9 +2,9 @@ package com.bitcrunzh.generic.config.reflection;
 
 import com.bitcrunzh.generic.config.description.java.ClassDescriptionCache;
 import com.bitcrunzh.generic.config.description.java.PropertyDescription;
+import com.bitcrunzh.generic.config.description.java.property.collection.CollectionValueDescription;
 import com.bitcrunzh.generic.config.reflection.annotation.property.*;
 import com.bitcrunzh.generic.config.validation.NumberValidationProblem;
-import com.bitcrunzh.generic.config.validation.PropertyValidator;
 import com.bitcrunzh.generic.config.validation.ValidationResult;
 
 import java.lang.reflect.Field;
@@ -12,8 +12,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PrimitivePropertyDescriptionFactory {
-    static <T> PropertyDescription<T, Boolean> createBooleanDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+public class PrimitiveDescriptionFactory {
+    static <T> PropertyDescription<T, Boolean> createBooleanPropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
         PropertyDescriptionBuilder<T, Boolean> builder = new PropertyDescriptionBuilder<>(type, field, classDescriptionCache, false);
         BooleanProperty booleanAnnotation = PropertyDescriptionFactory.tryGetAnnotationAndAssertNoOtherPropertyAnnotations(BooleanProperty.class, type, field);
         if (booleanAnnotation != null) {
@@ -26,7 +26,20 @@ public class PrimitivePropertyDescriptionFactory {
         return builder.buildSimpleProperty();
     }
 
-    static <T> PropertyDescription<T, Byte> createByteDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+    static <T> CollectionValueDescription<Boolean> createBooleanValueDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+        PropertyDescriptionBuilder<T, Boolean> builder = new PropertyDescriptionBuilder<>(type, field, classDescriptionCache, false);
+        BooleanProperty booleanAnnotation = PropertyDescriptionFactory.tryGetAnnotationAndAssertNoOtherPropertyAnnotations(BooleanProperty.class, type, field);
+        if (booleanAnnotation != null) {
+            builder.setNameIfNotEmpty(booleanAnnotation.name());
+            builder.setDescriptionIfNotEmpty(booleanAnnotation.description());
+            builder.setDefaultValue(booleanAnnotation.defaultValue());
+            builder.setVersion(booleanAnnotation.introducedInModelVersion());
+            builder.setOptional(booleanAnnotation.isOptional());
+        }
+        return builder.buildSimpleProperty();
+    }
+
+    static <T> PropertyDescription<T, Byte> createBytePropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
         PropertyDescriptionBuilder<T, Byte> builder = new PropertyDescriptionBuilder<>(type, field, classDescriptionCache, (byte) 0);
         ByteProperty byteAnnotation = PropertyDescriptionFactory.tryGetAnnotationAndAssertNoOtherPropertyAnnotations(ByteProperty.class, type, field);
         if (byteAnnotation != null) {
@@ -40,7 +53,7 @@ public class PrimitivePropertyDescriptionFactory {
         return builder.buildSimpleProperty();
     }
 
-    static <T> PropertyDescription<T, Short> createShortDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+    static <T> PropertyDescription<T, Short> createShortPropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
         PropertyDescriptionBuilder<T, Short> builder = new PropertyDescriptionBuilder<>(type, field, classDescriptionCache, (short) 0);
         ShortProperty shortAnnotation = PropertyDescriptionFactory.tryGetAnnotationAndAssertNoOtherPropertyAnnotations(ShortProperty.class, type, field);
         if (shortAnnotation != null) {
@@ -54,7 +67,7 @@ public class PrimitivePropertyDescriptionFactory {
         return builder.buildSimpleProperty();
     }
 
-    static <T> PropertyDescription<T, Integer> createIntDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+    static <T> PropertyDescription<T, Integer> createIntPropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
         PropertyDescriptionBuilder<T, Integer> builder = new PropertyDescriptionBuilder<>(type, field, classDescriptionCache, 0);
         IntProperty intAnnotation = PropertyDescriptionFactory.tryGetAnnotationAndAssertNoOtherPropertyAnnotations(IntProperty.class, type, field);
         if (intAnnotation != null) {
@@ -68,7 +81,7 @@ public class PrimitivePropertyDescriptionFactory {
         return builder.buildSimpleProperty();
     }
 
-    static <T> PropertyDescription<T, Long> createLongDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+    static <T> PropertyDescription<T, Long> createLongPropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
         PropertyDescriptionBuilder<T, Long> builder = new PropertyDescriptionBuilder<>(type, field, classDescriptionCache, 0L);
         LongProperty annotation = PropertyDescriptionFactory.tryGetAnnotationAndAssertNoOtherPropertyAnnotations(LongProperty.class, type, field);
         if (annotation != null) {
@@ -82,7 +95,7 @@ public class PrimitivePropertyDescriptionFactory {
         return builder.buildSimpleProperty();
     }
 
-    static <T> PropertyDescription<T, Float> createFloatDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+    static <T> PropertyDescription<T, Float> createFloatPropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
         PropertyDescriptionBuilder<T, Float> builder = new PropertyDescriptionBuilder<>(type, field, classDescriptionCache, 0.0f);
         FloatProperty annotation = PropertyDescriptionFactory.tryGetAnnotationAndAssertNoOtherPropertyAnnotations(FloatProperty.class, type, field);
         if (annotation != null) {
@@ -96,7 +109,7 @@ public class PrimitivePropertyDescriptionFactory {
         return builder.buildSimpleProperty();
     }
 
-    static <T> PropertyDescription<T, Double> createDoubleDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+    static <T> PropertyDescription<T, Double> createDoublePropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
         PropertyDescriptionBuilder<T, Double> builder = new PropertyDescriptionBuilder<>(type, field, classDescriptionCache, 0.0);
         DoubleProperty annotation = PropertyDescriptionFactory.tryGetAnnotationAndAssertNoOtherPropertyAnnotations(DoubleProperty.class, type, field);
         if (annotation != null) {
@@ -110,7 +123,7 @@ public class PrimitivePropertyDescriptionFactory {
         return builder.buildSimpleProperty();
     }
 
-    static <T> PropertyDescription<T, String> createStringDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
+    static <T> PropertyDescription<T, String> createStringPropertyDescription(Class<T> type, Field field, ClassDescriptionCache classDescriptionCache) {
         return null;
         //TODO implement;
     }
